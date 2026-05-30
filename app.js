@@ -959,8 +959,8 @@ function createCalendarCell(dayNum, isOtherMonth) {
   if (regularSchool) {
     const schoolLabel = document.createElement('span');
     schoolLabel.className = 'cell-school-label';
-    schoolLabel.style.fontSize = '0.85rem';
-    schoolLabel.style.fontWeight = '700';
+    schoolLabel.style.fontSize = '1.2rem';
+    schoolLabel.style.fontWeight = '800';
     schoolLabel.style.marginTop = '2px';
     schoolLabel.style.color = weekday === 1 ? '#3b82f6' : (weekday === 2 ? '#10b981' : (weekday === 4 ? '#f59e0b' : '#ec4899'));
     schoolLabel.textContent = regularSchool;
@@ -971,17 +971,19 @@ function createCalendarCell(dayNum, isOtherMonth) {
     if (scheduledKit) {
       const kitBadge = document.createElement('div');
       kitBadge.className = 'cell-kit-badge';
-      kitBadge.style.fontSize = '0.85rem';
+      kitBadge.style.fontSize = '1.15rem';
       kitBadge.style.background = 'rgba(124, 58, 237, 0.12)';
       kitBadge.style.border = '1px solid rgba(124, 58, 237, 0.2)';
       kitBadge.style.color = '#c084fc';
       kitBadge.style.borderRadius = '4px';
-      kitBadge.style.padding = '2px 5px';
-      kitBadge.style.marginTop = '2px';
+      kitBadge.style.padding = '4px 6px';
+      kitBadge.style.marginTop = '4px';
       kitBadge.style.maxWidth = '100%';
       kitBadge.style.overflow = 'hidden';
       kitBadge.style.textOverflow = 'ellipsis';
-      kitBadge.style.whiteSpace = 'nowrap';
+      kitBadge.style.whiteSpace = 'normal';
+      kitBadge.style.wordBreak = 'break-all';
+      kitBadge.style.lineHeight = '1.3';
       kitBadge.textContent = `${scheduledKit.session}차: ${scheduledKit.name}`;
       kitBadge.title = `${scheduledKit.session}차시: ${scheduledKit.name} (${scheduledKit.topic})`;
       cell.appendChild(kitBadge);
