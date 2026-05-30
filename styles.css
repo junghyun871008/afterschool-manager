@@ -768,7 +768,7 @@ body {
   grid-template-columns: repeat(7, 1fr);
   text-align: center;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 1.15rem;
   color: var(--text-muted);
   margin-bottom: 1rem;
 }
@@ -806,7 +806,7 @@ body {
 }
 
 .day-number {
-  font-size: 1.15rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--text-muted);
   align-self: flex-start;

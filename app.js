@@ -168,14 +168,20 @@ function loadState() {
       state.inventory = parsed.inventory || []; // Start empty or load saved inventory
       state.schoolMonthlyPlans = parsed.schoolMonthlyPlans || {};
 
-      // Clean up legacy mock coding inventory items if present
-      if (state.inventory && state.inventory.some(item => 
-        item.name.includes('스마트 가로등') || 
-        item.name.includes('드론') || 
-        item.name.includes('프로펠러') ||
-        item.name.includes('코딩')
-      )) {
-        state.inventory = [];
+      // Wiped due to '드론' keyword cleanup filter bug recovery
+      if (!state.inventory || state.inventory.length === 0) {
+        state.inventory = [
+          {
+            id: 'inv-auto-recovery-' + Date.now(),
+            name: '12차시 교구 - 유니콘 드론',
+            school: '증산초',
+            quantity: 1,
+            reason: '5월 대체공휴일(5/4, 5/25) 휴강으로 인한 진도 지연 교구 이월 보관',
+            memo: '대시보드 수업 취소 이체 건 (복구됨)',
+            dateAdded: '2026-05-25'
+          }
+        ];
+        mergedAny = true;
       }
 
       // Merge new public holiday schedules (sc-h prefixed) into existing user schedule state without duplicate dates for same school
@@ -953,7 +959,7 @@ function createCalendarCell(dayNum, isOtherMonth) {
   if (regularSchool) {
     const schoolLabel = document.createElement('span');
     schoolLabel.className = 'cell-school-label';
-    schoolLabel.style.fontSize = '0.65rem';
+    schoolLabel.style.fontSize = '0.85rem';
     schoolLabel.style.fontWeight = '700';
     schoolLabel.style.marginTop = '2px';
     schoolLabel.style.color = weekday === 1 ? '#3b82f6' : (weekday === 2 ? '#10b981' : (weekday === 4 ? '#f59e0b' : '#ec4899'));
@@ -965,12 +971,12 @@ function createCalendarCell(dayNum, isOtherMonth) {
     if (scheduledKit) {
       const kitBadge = document.createElement('div');
       kitBadge.className = 'cell-kit-badge';
-      kitBadge.style.fontSize = '0.75rem';
+      kitBadge.style.fontSize = '0.85rem';
       kitBadge.style.background = 'rgba(124, 58, 237, 0.12)';
       kitBadge.style.border = '1px solid rgba(124, 58, 237, 0.2)';
       kitBadge.style.color = '#c084fc';
       kitBadge.style.borderRadius = '4px';
-      kitBadge.style.padding = '1px 3px';
+      kitBadge.style.padding = '2px 5px';
       kitBadge.style.marginTop = '2px';
       kitBadge.style.maxWidth = '100%';
       kitBadge.style.overflow = 'hidden';
