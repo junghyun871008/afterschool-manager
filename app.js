@@ -168,17 +168,17 @@ function loadState() {
       state.inventory = parsed.inventory || []; // Start empty or load saved inventory
       state.schoolMonthlyPlans = parsed.schoolMonthlyPlans || {};
 
-      // Wiped due to '드론' keyword cleanup filter bug recovery
+      // Recovery for local data
       if (!state.inventory || state.inventory.length === 0) {
         state.inventory = [
           {
             id: 'inv-auto-recovery-' + Date.now(),
-            name: '12차시 교구 - 유니콘 드론',
+            name: '14차시 교구 - 잠수함비행기(슈팅)',
             school: '증산초',
-            quantity: 1,
-            reason: '5월 대체공휴일(5/4, 5/25) 휴강으로 인한 진도 지연 교구 이월 보관',
-            memo: '대시보드 수업 취소 이체 건 (복구됨)',
-            dateAdded: '2026-05-25'
+            quantity: 41,
+            reason: '06월 4주차 수업 조율 보관',
+            memo: '교구 스케줄러 보관 연동 건 (2026-06 계획)',
+            dateAdded: '2026-06-22'
           }
         ];
         mergedAny = true;
@@ -238,12 +238,12 @@ function resetToDefaults() {
   state.inventory = [
     {
       id: 'inv-auto-recovery-' + Date.now(),
-      name: '12차시 교구 - 유니콘 드론',
+      name: '14차시 교구 - 잠수함비행기(슈팅)',
       school: '증산초',
-      quantity: 1,
-      reason: '5월 대체공휴일(5/4, 5/25) 휴강으로 인한 진도 지연 교구 이월 보관',
-      memo: '대시보드 수업 취소 이체 건 (복구됨)',
-      dateAdded: '2026-05-25'
+      quantity: 41,
+      reason: '06월 4주차 수업 조율 보관',
+      memo: '교구 스케줄러 보관 연동 건 (2026-06 계획)',
+      dateAdded: '2026-06-22'
     }
   ];
   state.schoolMonthlyPlans = {};
