@@ -235,7 +235,17 @@ function loadState() {
 function resetToDefaults() {
   state.masterKits = [...defaultMasterKits];
   state.schedules = [...defaultSchedules];
-  state.inventory = []; // Empty inventory by default
+  state.inventory = [
+    {
+      id: 'inv-auto-recovery-' + Date.now(),
+      name: '12차시 교구 - 유니콘 드론',
+      school: '증산초',
+      quantity: 1,
+      reason: '5월 대체공휴일(5/4, 5/25) 휴강으로 인한 진도 지연 교구 이월 보관',
+      memo: '대시보드 수업 취소 이체 건 (복구됨)',
+      dateAdded: '2026-05-25'
+    }
+  ];
   state.schoolMonthlyPlans = {};
   saveState();
 }
