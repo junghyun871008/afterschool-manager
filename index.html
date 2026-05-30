@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>방과후 매니저 - 일정 및 교구 통합 관리 대시보드</title>
+  <!-- Google Fonts: Outfit, Plus Jakarta Sans, Noto Sans KR -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Vanilla CSS Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- App Container -->
+  <div class="app-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="logo-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+            <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/>
+          </svg>
+        </div>
+        <span class="brand-name">방과후 매니저</span>
+      </div>
+      
+      <nav class="sidebar-menu">
+        <a href="#" class="menu-item active" data-tab="dashboard" id="nav-dashboard">
+          <svg class="menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"/>
+            <rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/>
+          </svg>
+          <span>대시보드</span>
+        </a>
+        <a href="#" class="menu-item" data-tab="calendar" id="nav-calendar">
+          <svg class="menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <span>학사 일정 관리</span>
+        </a>
+        <a href="#" class="menu-item" data-tab="scheduler" id="nav-scheduler">
+          <svg class="menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9"/>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+          <span>교구 스케줄러</span>
+        </a>
+        <a href="#" class="menu-item" data-tab="inventory" id="nav-inventory">
+          <svg class="menu-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+            <line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+          <span>교구 보관고</span>
+        </a>
+      </nav>
+      
+      <!-- Quick Info Panel in Sidebar -->
+      <div class="sidebar-footer">
+        <div class="quick-status-card">
+          <div class="status-title">오늘의 출강</div>
+          <div class="status-value" id="today-school-name">로딩 중...</div>
+          <div class="status-detail" id="today-school-detail">학사 일정을 로드 중입니다.</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top Bar -->
+      <header class="top-bar">
+        <div class="user-greeting">
+          <h1 id="greeting-title">안녕하세요, 강사님!</h1>
+          <p id="current-date-display">현재 날짜 가져오는 중...</p>
+        </div>
+        <div class="header-actions">
+          <div class="theme-badge">
+            <span class="badge-dot pulse"></span>
+            <span class="badge-text">로컬 저장소 활성화됨</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- TAB: DASHBOARD -->
+      <section id="tab-dashboard-content" class="tab-panel active">
+        <!-- Dashboard Overview Row -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon icon-blue">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <h3>4개 학교</h3>
+              <p>총 관리 대상 출강교</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon icon-purple">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <h3>이번 주 출강</h3>
+              <p id="weekly-classes-count">계산 중...</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon icon-amber">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+              </svg>
+            </div>
+            <div class="stat-info">
+              <h3 id="inventory-alert-count">0개 보관 중</h3>
+              <p>교구 보관고 남은 수량</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-info-full">
+              <div class="progress-label">
+                <span>이번 주 수업 준비율</span>
+                <span id="weekly-prep-percentage">0%</span>
+              </div>
+              <div class="progress-bar-container">
+                <div class="progress-bar" id="weekly-prep-bar" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dashboard-layout">
+          <!-- Left: School cards -->
+          <div class="dashboard-main-section">
+            <h2 class="section-title">이번 주 출강 노선 및 수업 현황 (스케줄러 자동 연동)</h2>
+            <div class="school-grid">
+              
+              <!-- Monday Card (증산초) -->
+              <div class="school-card" id="card-monday" data-school="증산초">
+                <div class="school-card-header">
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+                    <div>
+                      <span class="day-badge day-mon">월요일</span>
+                      <span class="school-title">증산초등학교</span>
+                    </div>
+                    <span class="school-date-label" id="school-date-증산초" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">2026-06-01</span>
+                  </div>
+                  <div class="school-timetable-badge" id="timetable-증산초" style="margin-top: 0.35rem; font-size: 0.75rem; color: #a5b4fc; background: rgba(79, 70, 229, 0.1); border: 1px solid rgba(79, 70, 229, 0.2); padding: 0.2rem 0.5rem; border-radius: 4px; display: inline-block;">
+                    ⏰ 1부 1:10~2:40 / 2부 2:50~4:20
+                  </div>
+                </div>
+                <div class="school-card-body">
+                  <div class="planned-kit-display">
+                    <div class="planned-session-row">
+                      <span class="planned-session-badge" id="planned-session-badge-증산초">0차시</span>
+                      <span class="planned-session-label">이번 주 배정 교구</span>
+                    </div>
+                    <div class="planned-kit-name" id="planned-kit-name-증산초">로딩 중...</div>
+                    <div class="planned-kit-desc" id="planned-kit-desc-증산초">로딩 중...</div>
+                  </div>
+                  
+                  <div class="memo-box" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                    <div>
+                      <span class="info-label" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>👤 결석 학생 & 이월 교구 챙기기</span>
+                      </span>
+                      <div style="display: flex; gap: 0.35rem; margin-top: 0.25rem;">
+                        <input type="text" id="absent-input-증산초" class="todo-input-field" placeholder="학생명 및 필요 차시 입력..." style="flex: 1; padding: 0.4rem; font-size: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border-glass); border-radius: 4px; color: white;">
+                        <button class="btn-primary-sm btn-todo-add" data-school="증산초" data-type="absent" style="padding: 0.4rem 0.6rem; border-radius: 4px; font-weight: bold;">+</button>
+                      </div>
+                      <ul class="todo-list-container" id="absent-list-증산초" style="margin-top: 0.35rem; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 0.25rem;"></ul>
+                    </div>
+
+                    <div>
+                      <span class="info-label" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>🔧 챙길 준비물 / 특수 부품</span>
+                      </span>
+                      <div style="display: flex; gap: 0.35rem; margin-top: 0.25rem;">
+                        <input type="text" id="prep-input-증산초" class="todo-input-field" placeholder="준비물, 예비 부품 기재..." style="flex: 1; padding: 0.4rem; font-size: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border-glass); border-radius: 4px; color: white;">
+                        <button class="btn-primary-sm btn-todo-add" data-school="증산초" data-type="prep" style="padding: 0.4rem 0.6rem; border-radius: 4px; font-weight: bold;">+</button>
+                      </div>
+                      <ul class="todo-list-container" id="prep-list-증산초" style="margin-top: 0.35rem; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 0.25rem;"></ul>
+                    </div>
+
+                    <div>
+                      <span class="info-label">📝 수업 일지 / 일반 메모</span>
+                      <textarea class="memo-input" id="memo-input-증산초" placeholder="수업 특이사항 등 메모..." style="margin-top: 0.25rem; font-size: 0.8rem; height: 50px;"></textarea>
+                    </div>
+                  </div>
+                </div>
+                <div class="school-card-footer" style="display: flex; flex-direction: column; gap: 0.65rem;">
+                  <label class="prep-checkbox-label">
+                    <input type="checkbox" class="prep-checkbox" id="prep-checkbox-증산초">
+                    <span class="custom-checkbox"></span>
+                    <span class="checkbox-text">수업 준비 및 교구 패킹 완료</span>
+                  </label>
+                  <button class="btn-archive-kit" data-school="증산초">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 8H3V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2z"/>
+                      <path d="M10 12h4"/>
+                      <path d="M19 8v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8"/>
+                    </svg>
+                    남은 교구 보관고로 이체
+                  </button>
+                </div>
+              </div>
+
+              <!-- Tuesday Card (신도초) -->
+              <div class="school-card" id="card-tuesday" data-school="신도초">
+                <div class="school-card-header">
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+                    <div>
+                      <span class="day-badge day-tue">화요일</span>
+                      <span class="school-title">신도초등학교</span>
+                    </div>
+                    <span class="school-date-label" id="school-date-신도초" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">2026-06-02</span>
+                  </div>
+                  <div class="school-timetable-badge" id="timetable-신도초" style="margin-top: 0.35rem; font-size: 0.75rem; color: #34d399; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 0.2rem 0.5rem; border-radius: 4px; display: inline-block;">
+                    ⏰ 1부 2:00~2:50 / 2부 3:00~3:50
+                  </div>
+                </div>
+                <div class="school-card-body">
+                  <div class="planned-kit-display">
+                    <div class="planned-session-row">
+                      <span class="planned-session-badge" id="planned-session-badge-신도초">0차시</span>
+                      <span class="planned-session-label">이번 주 배정 교구</span>
+                    </div>
+                    <div class="planned-kit-name" id="planned-kit-name-신도초">로딩 중...</div>
+                    <div class="planned-kit-desc" id="planned-kit-desc-신도초">로딩 중...</div>
+                  </div>
+                  
+                  <div class="memo-box" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                    <div>
+                      <span class="info-label" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>👤 결석 학생 & 이월 교구 챙기기</span>
+                      </span>
+                      <div style="display: flex; gap: 0.35rem; margin-top: 0.25rem;">
+                        <input type="text" id="absent-input-신도초" class="todo-input-field" placeholder="학생명 및 필요 차시 입력..." style="flex: 1; padding: 0.4rem; font-size: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border-glass); border-radius: 4px; color: white;">
+                        <button class="btn-primary-sm btn-todo-add" data-school="신도초" data-type="absent" style="padding: 0.4rem 0.6rem; border-radius: 4px; font-weight: bold;">+</button>
+                      </div>
+                      <ul class="todo-list-container" id="absent-list-신도초" style="margin-top: 0.35rem; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 0.25rem;"></ul>
+                    </div>
+
+                    <div>
+                      <span class="info-label" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>🔧 챙길 준비물 / 특수 부품</span>
+                      </span>
+                      <div style="display: flex; gap: 0.35rem; margin-top: 0.25rem;">
+                        <input type="text" id="prep-input-신도초" class="todo-input-field" placeholder="준비물, 예비 부품 기재..." style="flex: 1; padding: 0.4rem; font-size: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border-glass); border-radius: 4px; color: white;">
+                        <button class="btn-primary-sm btn-todo-add" data-school="신도초" data-type="prep" style="padding: 0.4rem 0.6rem; border-radius: 4px; font-weight: bold;">+</button>
+                      </div>
+                      <ul class="todo-list-container" id="prep-list-신도초" style="margin-top: 0.35rem; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 0.25rem;"></ul>
+                    </div>
+
+                    <div>
+                      <span class="info-label">📝 수업 일지 / 일반 메모</span>
+                      <textarea class="memo-input" id="memo-input-신도초" placeholder="수업 특이사항 등 메모..." style="margin-top: 0.25rem; font-size: 0.8rem; height: 50px;"></textarea>
+                    </div>
+                  </div>
+                </div>
+                <div class="school-card-footer" style="display: flex; flex-direction: column; gap: 0.65rem;">
+                  <label class="prep-checkbox-label">
+                    <input type="checkbox" class="prep-checkbox" id="prep-checkbox-신도초">
+                    <span class="custom-checkbox"></span>
+                    <span class="checkbox-text">수업 준비 및 교구 패킹 완료</span>
+                  </label>
+                  <button class="btn-archive-kit" data-school="신도초">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 8H3V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2z"/>
+                      <path d="M10 12h4"/>
+                      <path d="M19 8v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8"/>
+                    </svg>
+                    남은 교구 보관고로 이체
+                  </button>
+                </div>
+              </div>
+
+              <!-- Thursday Card (삼성초) -->
+              <div class="school-card" id="card-thursday" data-school="삼성초">
+                <div class="school-card-header">
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+                    <div>
+                      <span class="day-badge day-thu">목요일</span>
+                      <span class="school-title">삼성초등학교</span>
+                    </div>
+                    <span class="school-date-label" id="school-date-삼성초" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">2026-06-04</span>
+                  </div>
+                  <div class="school-timetable-badge" id="timetable-삼성초" style="margin-top: 0.35rem; font-size: 0.75rem; color: #fbbf24; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); padding: 0.2rem 0.5rem; border-radius: 4px; display: inline-block;">
+                    ⏰ 1부 2:00~2:40 / 2부 2:50~3:30 / 3부 3:40~4:20
+                  </div>
+                </div>
+                <div class="school-card-body">
+                  <div class="planned-kit-display">
+                    <div class="planned-session-row">
+                      <span class="planned-session-badge" id="planned-session-badge-삼성초">0차시</span>
+                      <span class="planned-session-label">이번 주 배정 교구</span>
+                    </div>
+                    <div class="planned-kit-name" id="planned-kit-name-삼성초">로딩 중...</div>
+                    <div class="planned-kit-desc" id="planned-kit-desc-삼성초">로딩 중...</div>
+                  </div>
+                  
+                  <div class="memo-box" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                    <div>
+                      <span class="info-label" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>👤 결석 학생 & 이월 교구 챙기기</span>
+                      </span>
+                      <div style="display: flex; gap: 0.35rem; margin-top: 0.25rem;">
+                        <input type="text" id="absent-input-삼성초" class="todo-input-field" placeholder="학생명 및 필요 차시 입력..." style="flex: 1; padding: 0.4rem; font-size: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border-glass); border-radius: 4px; color: white;">
+                        <button class="btn-primary-sm btn-todo-add" data-school="삼성초" data-type="absent" style="padding: 0.4rem 0.6rem; border-radius: 4px; font-weight: bold;">+</button>
+                      </div>
+                      <ul class="todo-list-container" id="absent-list-삼성초" style="margin-top: 0.35rem; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 0.25rem;"></ul>
+                    </div>
+
+                    <div>
+                      <span class="info-label" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>🔧 챙길 준비물 / 특수 부품</span>
+                      </span>
+                      <div style="display: flex; gap: 0.35rem; margin-top: 0.25rem;">
+                        <input type="text" id="prep-input-삼성초" class="todo-input-field" placeholder="준비물, 예비 부품 기재..." style="flex: 1; padding: 0.4rem; font-size: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border-glass); border-radius: 4px; color: white;">
+                        <button class="btn-primary-sm btn-todo-add" data-school="삼성초" data-type="prep" style="padding: 0.4rem 0.6rem; border-radius: 4px; font-weight: bold;">+</button>
+                      </div>
+                      <ul class="todo-list-container" id="prep-list-삼성초" style="margin-top: 0.35rem; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 0.25rem;"></ul>
+                    </div>
+
+                    <div>
+                      <span class="info-label">📝 수업 일지 / 일반 메모</span>
+                      <textarea class="memo-input" id="memo-input-삼성초" placeholder="수업 특이사항 등 메모..." style="margin-top: 0.25rem; font-size: 0.8rem; height: 50px;"></textarea>
+                    </div>
+                  </div>
+                </div>
+                <div class="school-card-footer" style="display: flex; flex-direction: column; gap: 0.65rem;">
+                  <label class="prep-checkbox-label">
+                    <input type="checkbox" class="prep-checkbox" id="prep-checkbox-삼성초">
+                    <span class="custom-checkbox"></span>
+                    <span class="checkbox-text">수업 준비 및 교구 패킹 완료</span>
+                  </label>
+                  <button class="btn-archive-kit" data-school="삼성초">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 8H3V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2z"/>
+                      <path d="M10 12h4"/>
+                      <path d="M19 8v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8"/>
+                    </svg>
+                    남은 교구 보관고로 이체
+                  </button>
+                </div>
+              </div>
+
+              <!-- Friday Card (연서초) -->
+              <div class="school-card" id="card-friday" data-school="연서초">
+                <div class="school-card-header">
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+                    <div>
+                      <span class="day-badge day-fri">금요일</span>
+                      <span class="school-title">연서초등학교</span>
+                    </div>
+                    <span class="school-date-label" id="school-date-연서초" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">2026-06-05</span>
+                  </div>
+                  <div class="school-timetable-badge" id="timetable-연서초" style="margin-top: 0.35rem; font-size: 0.75rem; color: #f472b6; background: rgba(236, 72, 153, 0.1); border: 1px solid rgba(236, 72, 153, 0.2); padding: 0.2rem 0.5rem; border-radius: 4px; display: inline-block;">
+                    ⏰ 1부 1:40~2:20 / 2부 2:30~3:10 / 3부 3:20~4:00
+                  </div>
+                </div>
+                <div class="school-card-body">
+                  <div class="planned-kit-display">
+                    <div class="planned-session-row">
+                      <span class="planned-session-badge" id="planned-session-badge-연서초">0차시</span>
+                      <span class="planned-session-label">이번 주 배정 교구</span>
+                    </div>
+                    <div class="planned-kit-name" id="planned-kit-name-연서초">로딩 중...</div>
+                    <div class="planned-kit-desc" id="planned-kit-desc-연서초">로딩 중...</div>
+                  </div>
+                  
+                  <div class="memo-box" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                    <div>
+                      <span class="info-label" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>👤 결석 학생 & 이월 교구 챙기기</span>
+                      </span>
+                      <div style="display: flex; gap: 0.35rem; margin-top: 0.25rem;">
+                        <input type="text" id="absent-input-연서초" class="todo-input-field" placeholder="학생명 및 필요 차시 입력..." style="flex: 1; padding: 0.4rem; font-size: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border-glass); border-radius: 4px; color: white;">
+                        <button class="btn-primary-sm btn-todo-add" data-school="연서초" data-type="absent" style="padding: 0.4rem 0.6rem; border-radius: 4px; font-weight: bold;">+</button>
+                      </div>
+                      <ul class="todo-list-container" id="absent-list-연서초" style="margin-top: 0.35rem; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 0.25rem;"></ul>
+                    </div>
+
+                    <div>
+                      <span class="info-label" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>🔧 챙길 준비물 / 특수 부품</span>
+                      </span>
+                      <div style="display: flex; gap: 0.35rem; margin-top: 0.25rem;">
+                        <input type="text" id="prep-input-연서초" class="todo-input-field" placeholder="준비물, 예비 부품 기재..." style="flex: 1; padding: 0.4rem; font-size: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border-glass); border-radius: 4px; color: white;">
+                        <button class="btn-primary-sm btn-todo-add" data-school="연서초" data-type="prep" style="padding: 0.4rem 0.6rem; border-radius: 4px; font-weight: bold;">+</button>
+                      </div>
+                      <ul class="todo-list-container" id="prep-list-연서초" style="margin-top: 0.35rem; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 0.25rem;"></ul>
+                    </div>
+
+                    <div>
+                      <span class="info-label">📝 수업 일지 / 일반 메모</span>
+                      <textarea class="memo-input" id="memo-input-연서초" placeholder="수업 특이사항 등 메모..." style="margin-top: 0.25rem; font-size: 0.8rem; height: 50px;"></textarea>
+                    </div>
+                  </div>
+                </div>
+                <div class="school-card-footer" style="display: flex; flex-direction: column; gap: 0.65rem;">
+                  <label class="prep-checkbox-label">
+                    <input type="checkbox" class="prep-checkbox" id="prep-checkbox-연서초">
+                    <span class="custom-checkbox"></span>
+                    <span class="checkbox-text">수업 준비 및 교구 패킹 완료</span>
+                  </label>
+                  <button class="btn-archive-kit" data-school="연서초">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 8H3V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2z"/>
+                      <path d="M10 12h4"/>
+                      <path d="M19 8v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8"/>
+                    </svg>
+                    남은 교구 보관고로 이체
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Right: AI Briefing Assistant Bot -->
+          <div class="briefing-assistant-section">
+            <h2 class="section-title">주간 브리핑 비서</h2>
+            <div class="assistant-card">
+              <div class="assistant-header">
+                <div class="assistant-avatar">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  </svg>
+                </div>
+                <div class="assistant-meta">
+                  <span class="assistant-name">출강 정보 요약 봇</span>
+                  <span class="assistant-status">정상동작 · 실시간 브리핑</span>
+                </div>
+              </div>
+              <div class="assistant-body" id="briefing-content-area">
+                <!-- Dynamic text content from JS -->
+                수업 정보를 취합하는 중입니다...
+              </div>
+              <div class="assistant-footer">
+                <span class="briefing-update-time" id="briefing-timestamp">마지막 분석: May 31, 2026</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: ACADEMIC CALENDAR -->
+      <section id="tab-calendar-content" class="tab-panel">
+        <div class="calendar-layout">
+          <!-- Calendar Card -->
+          <div class="calendar-card">
+            <div class="calendar-header">
+              <div class="calendar-nav">
+                <button class="btn-nav" id="btn-prev-month">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"/>
+                  </svg>
+                </button>
+                <h2 id="calendar-title" class="month-title">2026년 5월</h2>
+                <button class="btn-nav" id="btn-next-month">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="calendar-legend">
+                <span class="legend-item"><span class="legend-dot bg-vacation"></span>방과후 방학</span>
+                <span class="legend-item"><span class="legend-dot bg-school-vacation"></span>학교 방학</span>
+                <span class="legend-item"><span class="legend-dot bg-openclass"></span>공개수업</span>
+              </div>
+            </div>
+
+            <!-- Weekday Row -->
+            <div class="calendar-weekdays">
+              <div class="weekday text-red">일</div>
+              <div class="weekday">월</div>
+              <div class="weekday">화</div>
+              <div class="weekday">수</div>
+              <div class="weekday">목</div>
+              <div class="weekday">금</div>
+              <div class="weekday text-blue">토</div>
+            </div>
+
+            <!-- Days Grid -->
+            <div class="calendar-days" id="calendar-days-grid">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Schedule Manager Sidebar -->
+          <div class="schedule-sidebar">
+            <div class="sidebar-section-header" style="flex-direction: column; align-items: flex-start; gap: 0.75rem;">
+              <h3>등록된 학사 일정</h3>
+              <div style="display: flex; gap: 0.5rem; width: 100%;">
+                <label for="ics-file-input" class="btn-secondary-sm" style="flex: 1; text-align: center; display: flex; align-items: center; justify-content: center; gap: 0.35rem; font-size: 0.75rem; padding: 0.45rem 0.5rem; border-radius: 6px; cursor: pointer; border: 1px solid var(--border-glass); background: rgba(255,255,255,0.03); margin: 0; color: var(--text-main); font-family: var(--font-primary); font-weight: 600;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                  </svg>
+                  구글 .ics 등록
+                </label>
+                <input type="file" id="ics-file-input" accept=".ics" style="display: none;">
+                
+                <button class="btn-primary-sm" id="btn-add-schedule-trigger" style="flex: 1; justify-content: center; font-size: 0.75rem; padding: 0.45rem 0.5rem; border-radius: 6px;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                  </svg>
+                  일정 등록
+                </button>
+              </div>
+            </div>
+            
+            <div class="schedule-list-wrapper" id="schedule-list">
+              <!-- Rendered via JS -->
+              <div class="empty-state">
+                <p>이번 달 등록된 학사 일정이 없습니다.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      </section>
+
+      <!-- TAB: SCHEDULER -->
+      <section id="tab-scheduler-content" class="tab-panel">
+        <div class="scheduler-layout">
+          <!-- Master Kits Database Section (Left) -->
+          <div class="master-kits-card">
+            <div class="section-header-row">
+              <h2 class="section-title">48차시 마스터 교구 정보 관리</h2>
+              <p class="section-desc">1년 동안 사용할 48차시의 표준 교구 리스트입니다. 필요시 항목을 더블클릭하여 수정할 수 있습니다.</p>
+            </div>
+            
+            <div class="master-kits-search">
+              <input type="text" id="master-kit-search-input" class="search-input-field" placeholder="교구명 또는 주제 검색...">
+            </div>
+            
+            <div class="master-kits-list" id="master-kits-list-container">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+          
+          <!-- Monthly Class Scheduler Section (Right) -->
+          <div class="monthly-scheduler-card">
+            <div class="section-header-row">
+              <h2 class="section-title">학교별 월간 교구 스케줄러</h2>
+              <p class="section-desc">각 학교의 실제 수업일(1~5주차)에 진행할 교구를 자유롭게 재배치합니다.</p>
+            </div>
+            
+            <div class="scheduler-selector-row">
+              <div class="selector-group">
+                <label for="sched-school-select" class="form-group-label">출강교</label>
+                <select id="sched-school-select" class="sched-select-box">
+                  <option value="증산초">증산초 (월)</option>
+                  <option value="신도초">신도초 (화)</option>
+                  <option value="삼성초">삼성초 (목)</option>
+                  <option value="연서초">연서초 (금)</option>
+                </select>
+              </div>
+              <div class="selector-group">
+                <label for="sched-month-select" class="form-group-label">월 선택</label>
+                <select id="sched-month-select" class="sched-select-box">
+                  <option value="2026-03">2026년 3월</option>
+                  <option value="2026-04">2026년 4월</option>
+                  <option value="2026-05">2026년 5월</option>
+                  <option value="2026-06" selected>2026년 6월</option>
+                  <option value="2026-07">2026년 7월</option>
+                  <option value="2026-08">2026년 8월</option>
+                  <option value="2026-09">2026년 9월</option>
+                  <option value="2026-10">2026년 10월</option>
+                  <option value="2026-11">2026년 11월</option>
+                  <option value="2026-12">2026년 12월</option>
+                  <option value="2027-01">2027년 1월</option>
+                  <option value="2027-02">2027년 2월</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="scheduler-slots-container" id="scheduler-slots-wrapper">
+              <!-- Rendered via JS -->
+            </div>
+
+            <!-- Holiday Delay Guide Box (Step 5 Guide Card) -->
+            <div class="scheduler-guide-box" style="margin-top: 1rem; margin-bottom: 1.25rem; background: rgba(59, 130, 246, 0.05); border: 1.5px dashed rgba(59, 130, 246, 0.25); border-radius: var(--radius-md); padding: 1rem; font-size: 0.85rem; line-height: 1.5;">
+              <div style="display: flex; align-items: center; gap: 0.5rem; color: #60a5fa; font-weight: 700; margin-bottom: 0.5rem;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="16" x2="12" y2="12"/>
+                  <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+                💡 공휴일 휴강으로 진도가 밀릴 때 조율 팁
+              </div>
+              <p style="color: var(--text-muted); margin-bottom: 0.5rem;">
+                예컨대 <strong>5월에 대체공휴일로 2번만 수업</strong>하여 교구가 밀린 경우:
+              </p>
+              <ul style="color: var(--text-muted); padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.35rem;">
+                <li>1. <strong>6월 1주차</strong>에 밀린 5월 드론 교구(예: 12차시)를 지정합니다.</li>
+                <li>2. 6월 실제 수업 주차(예: 3주)에 맞추어 6월용 교구를 순서대로 지정합니다.</li>
+                <li>3. 이번 달에 쓰지 못하고 남게 된 나머지 6월 교구는 슬롯 우측의 <strong>[보관]</strong> 버튼을 클릭하여 창고(보관고)로 즉시 이체한 뒤 다음 달 계획 시 당겨 쓸 수 있습니다.</li>
+              </ul>
+            </div>
+            
+            <div class="scheduler-actions-row">
+              <button class="btn-primary" id="btn-save-scheduler-plan" style="width: 100%; justify-content: center;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                  <polyline points="17 21 17 13 7 13 7 21"/>
+                  <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                스케줄 순서 저장하기
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: INVENTORY -->
+      <section id="tab-inventory-content" class="tab-panel">
+        <div class="inventory-section-header">
+          <div>
+            <h2 class="section-title">남은 교구 보관고 (창고 인벤토리)</h2>
+            <p class="section-desc">휴강, 공휴일, 학생 결석 등으로 밀려 보관 중인 교구들의 수량과 히스토리를 관리합니다.</p>
+          </div>
+          <div style="display: flex; gap: 0.75rem;">
+            <button class="btn-secondary" id="btn-clear-inventory" style="background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.2); color: #f87171; display: flex; align-items: center; gap: 0.35rem; font-size: 0.9rem; padding: 0.5rem 1rem; border-radius: var(--radius-md);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
+              보관고 비우기
+            </button>
+            <button class="btn-primary" id="btn-add-inventory-trigger">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              남은 교구 등록
+            </button>
+          </div>
+        </div>
+
+        <!-- Inventory List Table / Grid -->
+        <div class="inventory-grid" id="inventory-items-grid">
+          <!-- Rendered via JS -->
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODAL: ADD/EDIT ACADEMIC SCHEDULE -->
+  <div class="modal-overlay" id="schedule-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="schedule-modal-title">학사 일정 등록</h3>
+        <button class="btn-close" id="btn-close-schedule-modal">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="schedule-form">
+          <input type="hidden" id="edit-schedule-id">
+          <div class="form-group">
+            <label for="schedule-date">날짜</label>
+            <input type="date" id="schedule-date" required>
+          </div>
+          <div class="form-group">
+            <label for="schedule-school">학교 선택</label>
+            <select id="schedule-school" required>
+              <option value="증산초">증산초등학교 (월)</option>
+              <option value="신도초">신도초등학교 (화)</option>
+              <option value="삼성초">삼성초등학교 (목)</option>
+              <option value="연서초">연서초등학교 (금)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>일정 유형</label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" name="schedule-type" value="vacation" checked>
+                <span class="custom-radio"></span>
+                <span>방과후 방학 (주황색)</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="schedule-type" value="school-vacation">
+                <span class="custom-radio"></span>
+                <span>학교 방학 (빨간색)</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="schedule-type" value="openclass">
+                <span class="custom-radio"></span>
+                <span>공개수업 (초록색)</span>
+              </label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="schedule-memo">상세 내용 및 메모</label>
+            <textarea id="schedule-memo" rows="3" placeholder="예: 단기방학으로 인한 휴강, 학부모 공개수업 등"></textarea>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" id="btn-cancel-schedule-modal">취소</button>
+            <button type="submit" class="btn-primary">저장하기</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD/EDIT INVENTORY ITEM -->
+  <div class="modal-overlay" id="inventory-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="inventory-modal-title">남은 교구 등록</h3>
+        <button class="btn-close" id="btn-close-inventory-modal">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="inventory-form">
+          <input type="hidden" id="edit-inventory-id">
+          <div class="form-group">
+            <label for="inv-item-name">교구 이름 / 차시 정보</label>
+            <input type="text" id="inv-item-name" placeholder="예: 14차시 드론 교구, 로봇 메인보드" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="inv-school">발생 학교</label>
+              <select id="inv-school">
+                <option value="증산초">증산초 (월)</option>
+                <option value="신도초">신도초 (화)</option>
+                <option value="삼성초">삼성초 (목)</option>
+                <option value="연서초">연서초 (금)</option>
+                <option value="기타">공통 / 기타</option>
+              </select>
+            </div>
+            <div class="form-group col-6">
+              <label for="inv-quantity">남은 수량 (개)</label>
+              <input type="number" id="inv-quantity" min="1" value="1" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="inv-reason">교구가 남게 된 사유</label>
+            <input type="text" id="inv-reason" placeholder="예: 공휴일 휴강으로 인한 잔여분, 당일 결석 2명 등" required>
+          </div>
+          <div class="form-group">
+            <label for="inv-memo">기타 보관 메모</label>
+            <textarea id="inv-memo" rows="2" placeholder="창고 A박스 보관, 다음 분기에 재사용 가능 등"></textarea>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" id="btn-cancel-inventory-modal">취소</button>
+            <button type="submit" class="btn-primary">저장하기</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT MASTER KIT -->
+  <div class="modal-overlay" id="edit-kit-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="edit-kit-modal-title">마스터 교구 정보 수정</h3>
+        <button class="btn-close" id="btn-close-edit-kit-modal">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="edit-kit-form">
+          <input type="hidden" id="edit-kit-session-id">
+          <div class="form-group">
+            <label>차시 번호</label>
+            <input type="text" id="edit-kit-session-display" readonly style="background: rgba(255, 255, 255, 0.05); color: var(--text-muted); cursor: not-allowed;">
+          </div>
+          <div class="form-group">
+            <label for="edit-kit-name">교구 이름</label>
+            <input type="text" id="edit-kit-name" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-kit-topic">수업 주제</label>
+            <input type="text" id="edit-kit-topic" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-kit-content">학습 내용</label>
+            <textarea id="edit-kit-content" rows="3" required></textarea>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" id="btn-cancel-edit-kit-modal">취소</button>
+            <button type="submit" class="btn-primary">저장하기</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript file -->
+  <script src="app.js"></script>
+</body>
+</html>
