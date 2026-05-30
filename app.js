@@ -259,8 +259,13 @@ function setupNavigation() {
       e.preventDefault();
       const targetTab = item.getAttribute('data-tab');
 
-      menuItems.forEach(mi => mi.classList.remove('active'));
-      item.classList.add('active');
+      menuItems.forEach(mi => {
+        if (mi.getAttribute('data-tab') === targetTab) {
+          mi.classList.add('active');
+        } else {
+          mi.classList.remove('active');
+        }
+      });
 
       panels.forEach(panel => {
         panel.classList.remove('active');

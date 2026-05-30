@@ -1793,15 +1793,7 @@ body {
   }
   
   .sidebar-menu {
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-  
-  .menu-item {
-    flex: 1;
-    min-width: 120px;
-    justify-content: center;
-    padding: 0.75rem;
+    display: none;
   }
   
   .sidebar-footer {
@@ -2098,5 +2090,66 @@ body {
 .todo-input-field:focus {
   border-color: rgba(59, 130, 246, 0.5) !important;
   outline: none;
+}
+
+/* ==========================================================================
+   Mobile Bottom Navigation Bar
+   ========================================================================== */
+
+.bottom-nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background: rgba(17, 24, 39, 0.95); /* Solid high contrast dark background */
+    backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    justify-content: space-around;
+    align-items: center;
+    z-index: 9999;
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.5);
+    padding: 0 1rem;
+  }
+
+  .bottom-nav .menu-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: var(--transition-fast);
+    padding: 0.5rem 0;
+    width: 25%;
+    height: 100%;
+  }
+
+  .bottom-nav .menu-item .menu-icon {
+    width: 20px;
+    height: 20px;
+    stroke: var(--text-muted);
+  }
+
+  .bottom-nav .menu-item.active {
+    color: #a78bfa;
+  }
+
+  .bottom-nav .menu-item.active .menu-icon {
+    stroke: #8b5cf6;
+  }
+
+  .main-content {
+    padding-bottom: 80px !important; /* Add bottom padding so content is not cut off by bottom nav */
+  }
 }
 
