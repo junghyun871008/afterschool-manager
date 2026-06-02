@@ -83,6 +83,12 @@
           <p id="current-date-display">현재 날짜 가져오는 중...</p>
         </div>
         <div class="header-actions">
+          <button id="btn-open-cloud-sync" class="btn-sync btn-sync-cloud" title="클라우드 동기화 설정 (모바일·PC 자동 동기화)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>
+            </svg>
+            <span>클라우드 동기화</span>
+          </button>
           <button id="btn-export-data" class="btn-sync" title="데이터 백업 파일 내보내기 (다른 기기에서 불러오기 가능)">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -917,6 +923,51 @@
   </nav>
 
   <!-- JavaScript file -->
+  <!-- MODAL: 클라우드 동기화 설정 -->
+  <div class="modal-overlay" id="cloud-sync-modal">
+    <div class="modal-card" style="max-width:520px">
+      <div class="modal-header">
+        <h3>☁️ 클라우드 동기화 설정</h3>
+        <button class="btn-close" id="btn-close-cloud-modal">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="cloud-sync-status-row" id="cloud-status-row" style="display:none;margin-bottom:1rem;padding:0.6rem 0.9rem;border-radius:8px;font-size:0.82rem;font-weight:600;"></div>
+
+        <div class="cloud-guide-box">
+          <div class="cloud-guide-title">📌 Firebase 무료 설정 방법 (5분)</div>
+          <ol class="cloud-guide-steps">
+            <li><a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> → Google 로그인</li>
+            <li>프로젝트 추가 → 이름 입력 → 계속 → 프로젝트 만들기</li>
+            <li>왼쪽 메뉴 → <strong>빌드 → Realtime Database</strong> → 데이터베이스 만들기</li>
+            <li>위치: 기본값 → <strong>테스트 모드로 시작</strong> → 사용 설정</li>
+            <li>표시되는 URL 복사 (<code>https://xxxxx-rtdb.firebaseio.com</code>)</li>
+            <li>아래에 붙여넣기 + 동기화 키 설정 → 연결하기</li>
+          </ol>
+        </div>
+
+        <div class="form-group" style="margin-top:1.25rem">
+          <label for="firebase-url-input">Firebase 데이터베이스 URL</label>
+          <input type="text" id="firebase-url-input" placeholder="https://your-project-default-rtdb.firebaseio.com">
+        </div>
+        <div class="form-group">
+          <label for="firebase-key-input">동기화 키 <span style="font-weight:400;color:#94a3b8">(비밀번호처럼 사용 — 모든 기기에 동일하게 입력)</span></label>
+          <input type="text" id="firebase-key-input" placeholder="예: hangkong2026">
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="btn-disconnect-cloud" style="margin-right:auto;color:#dc2626;border-color:rgba(220,38,38,0.3)">연결 해제</button>
+          <button type="button" class="btn-secondary" id="btn-cancel-cloud-modal">취소</button>
+          <button type="button" class="btn-primary" id="btn-save-cloud-settings">☁️ 연결하기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

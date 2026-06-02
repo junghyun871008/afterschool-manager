@@ -2509,3 +2509,56 @@ body {
 .sheets-sync-badge.synced { color: #059669; }
 .sheets-sync-badge.error { color: #dc2626; }
 
+/* ==========================================================================
+   ☁️ 클라우드 동기화 설정 모달
+   ========================================================================== */
+
+.btn-sync-cloud {
+  background: rgba(37, 99, 235, 0.08);
+  border-color: rgba(37, 99, 235, 0.25);
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.btn-sync-cloud:hover {
+  background: rgba(37, 99, 235, 0.18);
+  color: #1d4ed8;
+}
+
+.cloud-guide-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+}
+
+.cloud-guide-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.6rem;
+}
+
+.cloud-guide-steps {
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.cloud-guide-steps a {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.cloud-guide-steps code {
+  background: #e2e8f0;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #334155;
+}
+

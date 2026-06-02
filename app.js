@@ -136,6 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupSchedulerEventListeners();
   setupDataSyncEventListeners();
   setupSheetsRefreshButton();
+  setupCloudSyncModal();
 
   // Hook the clear inventory button directly
   const clearInvBtn = document.getElementById('btn-clear-inventory');
@@ -160,6 +161,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Google Sheets 연동 (비동기 백그라운드)
   loadEnrollmentFromSheets();
   loadAbsencesFromSheets();
+
+  // Firebase 클라우드 동기화 자동 재연결
+  const { url, key } = getCloudSettings();
+  if (url) initFirebaseSync(url, key);
 });
 
 // --- State Management ---
@@ -258,6 +263,7 @@ function resetToDefaults() {
 
 function saveState() {
   localStorage.setItem('afterschool_manager_state', JSON.stringify(state));
+  saveStateToCloud(); // 클라우드 연결 시 자동 동기화
 }
 
 // --- Initialize Calendar View Date ---
@@ -1895,6 +1901,217 @@ function setupSheetsRefreshButton() {
       await Promise.all([loadEnrollmentFromSheets(), loadAbsencesFromSheets()]);
       btn.textContent = '🔄 시트 새로고침';
       btn.disabled = false;
+    });
+  }
+}
+
+// ==========================================================================
+// ☁️ Firebase 클라우드 동기화 — 모바일·PC 자동 동기화
+// ==========================================================================
+
+let _fbApp = null;
+let _fbDB = null;
+let _fbRef = null;
+let _fbIgnore = false; // 내가 저장할 때 리스너 루프 방지
+
+function getCloudSettings() {
+  return {
+    url: localStorage.getItem('asmanager_fb_url') || '',
+    key: localStorage.getItem('asmanager_fb_key') || 'default'
+  };
+}
+
+function saveCloudSettings(url, key) {
+  localStorage.setItem('asmanager_fb_url', url.trim());
+  localStorage.setItem('asmanager_fb_key', (key || 'default').trim());
+}
+
+function clearCloudSettings() {
+  localStorage.removeItem('asmanager_fb_url');
+  localStorage.removeItem('asmanager_fb_key');
+}
+
+function setCloudStatusUI(status, msg) {
+  // 배지 텍스트
+  const badgeText = document.querySelector('.badge-text');
+  const badgeDot = document.querySelector('.badge-dot');
+  if (badgeText) {
+    if (status === 'synced') {
+      badgeText.textContent = '☁️ 클라우드 동기화됨';
+      if (badgeDot) badgeDot.style.backgroundColor = '#2563eb';
+    } else if (status === 'connecting') {
+      badgeText.textContent = '☁️ 연결 중...';
+      if (badgeDot) badgeDot.style.backgroundColor = '#f59e0b';
+    } else if (status === 'error') {
+      badgeText.textContent = '⚠️ 동기화 오류';
+      if (badgeDot) badgeDot.style.backgroundColor = '#dc2626';
+    } else {
+      badgeText.textContent = '기기 저장소 (내보내기로 동기화)';
+      if (badgeDot) badgeDot.style.backgroundColor = '#059669';
+    }
+  }
+
+  // 모달 상태 행
+  const row = document.getElementById('cloud-status-row');
+  if (row && msg) {
+    row.style.display = 'block';
+    if (status === 'synced') {
+      row.style.background = 'rgba(5,150,105,0.08)';
+      row.style.color = '#047857';
+      row.style.border = '1px solid rgba(5,150,105,0.2)';
+    } else if (status === 'error') {
+      row.style.background = 'rgba(220,38,38,0.07)';
+      row.style.color = '#dc2626';
+      row.style.border = '1px solid rgba(220,38,38,0.2)';
+    } else {
+      row.style.background = 'rgba(37,99,235,0.07)';
+      row.style.color = '#1d4ed8';
+      row.style.border = '1px solid rgba(37,99,235,0.2)';
+    }
+    row.textContent = msg;
+  }
+
+  // 버튼 색
+  const cloudBtn = document.getElementById('btn-open-cloud-sync');
+  if (cloudBtn) {
+    if (status === 'synced') {
+      cloudBtn.style.background = 'rgba(37,99,235,0.12)';
+      cloudBtn.style.borderColor = 'rgba(37,99,235,0.4)';
+      cloudBtn.style.color = '#1d4ed8';
+    } else {
+      cloudBtn.style.background = '';
+      cloudBtn.style.borderColor = '';
+      cloudBtn.style.color = '';
+    }
+  }
+}
+
+async function initFirebaseSync(url, key) {
+  if (!url) { setCloudStatusUI('off'); return false; }
+
+  setCloudStatusUI('connecting', '연결 중입니다...');
+  try {
+    // 이미 초기화된 앱 재사용 or 새 초기화
+    if (!_fbApp) {
+      _fbApp = firebase.initializeApp({ databaseURL: url }, 'afterschool-manager');
+    }
+    _fbDB = firebase.database(_fbApp);
+
+    const path = `afterschool-manager/${key || 'default'}/data`;
+    _fbRef = _fbDB.ref(path);
+
+    // 기존 리스너 제거 후 재등록
+    _fbRef.off();
+
+    // 최초 한 번 데이터 읽기 (다른 기기가 더 최신이면 덮어쓰기)
+    const snapshot = await _fbRef.get();
+    if (snapshot.exists()) {
+      const cloud = snapshot.val();
+      // 클라우드 데이터가 있으면 로컬보다 우선
+      if (cloud.masterKits && cloud.masterKits.length > 0) {
+        state.masterKits = cloud.masterKits;
+        state.schools = cloud.schools || state.schools;
+        state.schedules = cloud.schedules || state.schedules;
+        state.inventory = cloud.inventory || state.inventory;
+        state.schoolMonthlyPlans = cloud.schoolMonthlyPlans || state.schoolMonthlyPlans;
+        localStorage.setItem('afterschool_manager_state', JSON.stringify(state));
+        renderDashboard(); renderCalendar(); renderInventory(); renderScheduler();
+      }
+    } else {
+      // 클라우드 비어있으면 현재 로컬 데이터를 클라우드에 업로드
+      await _fbRef.set(state);
+    }
+
+    // 실시간 리스너 — 다른 기기가 저장하면 즉시 반영
+    _fbRef.on('value', (snap) => {
+      if (_fbIgnore) return;
+      const data = snap.val();
+      if (!data || !data.masterKits) return;
+      state.masterKits = data.masterKits;
+      state.schools = data.schools || state.schools;
+      state.schedules = data.schedules || state.schedules;
+      state.inventory = data.inventory || state.inventory;
+      state.schoolMonthlyPlans = data.schoolMonthlyPlans || state.schoolMonthlyPlans;
+      localStorage.setItem('afterschool_manager_state', JSON.stringify(state));
+      renderDashboard(); renderCalendar(); renderInventory(); renderScheduler();
+      const now = new Date();
+      setCloudStatusUI('synced', `✓ 연결됨 · 마지막 동기화 ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`);
+    }, (err) => {
+      setCloudStatusUI('error', `오류: ${err.message}`);
+    });
+
+    setCloudStatusUI('synced', `✓ 클라우드 연결 성공! 이제 모든 기기에서 자동으로 동기화됩니다.`);
+    return true;
+  } catch (e) {
+    setCloudStatusUI('error', `연결 실패: ${e.message} — URL과 키를 확인하세요.`);
+    return false;
+  }
+}
+
+function saveStateToCloud() {
+  if (!_fbRef) return;
+  _fbIgnore = true;
+  _fbRef.set(state).then(() => {
+    setTimeout(() => { _fbIgnore = false; }, 1000);
+  }).catch(() => { _fbIgnore = false; });
+}
+
+function setupCloudSyncModal() {
+  const modal = document.getElementById('cloud-sync-modal');
+  const openBtn = document.getElementById('btn-open-cloud-sync');
+  const closeBtn = document.getElementById('btn-close-cloud-modal');
+  const cancelBtn = document.getElementById('btn-cancel-cloud-modal');
+  const saveBtn = document.getElementById('btn-save-cloud-settings');
+  const disconnectBtn = document.getElementById('btn-disconnect-cloud');
+  const urlInput = document.getElementById('firebase-url-input');
+  const keyInput = document.getElementById('firebase-key-input');
+
+  if (!modal) return;
+
+  function openModal() {
+    const s = getCloudSettings();
+    if (urlInput) urlInput.value = s.url;
+    if (keyInput) keyInput.value = s.key === 'default' ? '' : s.key;
+    const statusRow = document.getElementById('cloud-status-row');
+    if (statusRow) statusRow.style.display = 'none';
+    modal.classList.add('active');
+  }
+  function closeModal() { modal.classList.remove('active'); }
+
+  if (openBtn) openBtn.addEventListener('click', openModal);
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+  if (saveBtn) {
+    saveBtn.addEventListener('click', async () => {
+      const url = urlInput ? urlInput.value.trim() : '';
+      const key = keyInput ? keyInput.value.trim() : '';
+      if (!url) {
+        alert('Firebase 데이터베이스 URL을 입력해 주세요.');
+        return;
+      }
+      if (!url.includes('firebaseio.com')) {
+        alert('URL 형식이 올바르지 않습니다.\n예: https://your-project-default-rtdb.firebaseio.com');
+        return;
+      }
+      saveBtn.textContent = '연결 중...';
+      saveBtn.disabled = true;
+      saveCloudSettings(url, key);
+      const ok = await initFirebaseSync(url, key);
+      saveBtn.textContent = '☁️ 연결하기';
+      saveBtn.disabled = false;
+      if (ok) setTimeout(closeModal, 2000);
+    });
+  }
+
+  if (disconnectBtn) {
+    disconnectBtn.addEventListener('click', () => {
+      if (!confirm('클라우드 동기화를 해제하시겠습니까?\n기기 저장소(로컬)만 사용합니다.')) return;
+      if (_fbRef) _fbRef.off();
+      _fbRef = null; _fbDB = null;
+      clearCloudSettings();
+      setCloudStatusUI('off');
+      closeModal();
     });
   }
 }
