@@ -176,6 +176,14 @@ document.addEventListener('DOMContentLoaded', () => {
   loadEnrollmentFromSheets();
   loadAbsencesFromSheets();
 
+  // 학사 일정 시트 동기화 버튼
+  const syncBtn = document.getElementById('btn-sync-schedules');
+  if (syncBtn) {
+    syncBtn.addEventListener('click', () => syncSchedulesFromSheet());
+  }
+  // 앱 로드 시 자동 동기화 (백그라운드)
+  syncSchedulesFromSheet();
+
   // Firebase 클라우드 동기화 자동 재연결
   const { url, key } = getCloudSettings();
   if (url) initFirebaseSync(url, key);
@@ -245,15 +253,15 @@ function loadState() {
         if (!state.schools[school].prepTodos) state.schools[school].prepTodos = [];
       }
 
-      // 데이터 정정: 잘못 기록된 신도초 공개수업 (2026-06-16) 제거
-      // 실제 신도초 공개수업은 2026-10-20
-      const wrongEvIdx = state.schedules.findIndex(s =>
-        s.date === '2026-06-16' && s.school === '신도초' && s.type === 'openclass'
-      );
-      if (wrongEvIdx !== -1) {
-        state.schedules.splice(wrongEvIdx, 1);
-        mergedAny = true;
-      }
+      // 데이터 정정: 잘못 기록된 이벤트 제거
+      const wrongDates = [
+        { date: '2026-06-16', school: '신도초', type: 'openclass' }, // 실제 공개수업은 10/20
+        { date: '2026-06-08', school: '삼성초', type: 'openclass' }, // 시트 동기화 오류 (실제는 6/11)
+      ];
+      wrongDates.forEach(w => {
+        const idx = state.schedules.findIndex(s => s.date === w.date && s.school === w.school && s.type === w.type);
+        if (idx !== -1) { state.schedules.splice(idx, 1); mergedAny = true; }
+      });
 
       if (mergedAny) {
         saveState();
@@ -1046,6 +1054,25 @@ function createCalendarCell(dayNum, isOtherMonth) {
 
   const events = state.schedules.filter(ev => ev.date === dateStr);
   if (events.length > 0) {
+    const hasOpenClass = events.some(ev => ev.type === 'openclass');
+    const hasVacation = events.some(ev => ev.type === 'vacation' || ev.type === 'school-vacation');
+
+    // 공개수업 셀: ★ 배지 표시
+    if (hasOpenClass) {
+      const ocBadge = document.createElement('div');
+      ocBadge.className = 'cell-openclass-badge';
+      ocBadge.textContent = isMobile ? '★' : '★ 공개수업';
+      cell.style.background = 'rgba(124,58,237,0.06)';
+      cell.style.borderColor = 'rgba(124,58,237,0.3)';
+      cell.appendChild(ocBadge);
+    }
+
+    // 휴강 셀: 배경색 변경
+    if (hasVacation && !hasOpenClass) {
+      cell.style.background = 'rgba(220,38,38,0.04)';
+      cell.style.borderColor = 'rgba(220,38,38,0.2)';
+    }
+
     const dotContainer = document.createElement('div');
     dotContainer.className = 'day-events-dots';
     events.forEach(ev => {
@@ -1823,6 +1850,119 @@ function setupSchedulerEventListeners() {
 }
 
 // ==========================================================================
+// Google Sheets 학사 일정 자동 동기화
+// ==========================================================================
+
+const SCHEDULE_SHEET_ID = '1hEawF0B3Gz7ZYiQbqh4FnKJc5c-FZNMkz5pQWUOBq3w';
+
+// 시트 날짜 문자열 → "YYYY-MM-DD" 변환
+function parseSheetDate(raw) {
+  if (!raw) return null;
+  const clean = raw.replace(/\s/g, '');
+  // "2026.5.10" 또는 "2026-05-10" 처리
+  const m = clean.match(/(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})/);
+  if (!m) return null;
+  return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+}
+
+// 활동명에서 이벤트 유형 판단
+function classifyScheduleEvent(text, notes) {
+  const t = (text + ' ' + (notes||'')).toLowerCase();
+  if (t.includes('공개수업')) return 'openclass';
+  if (t.includes('방학') || t.includes('휴강')) return 'vacation';
+  if (t.includes('재량휴업') || t.includes('개교기념') || t.includes('공휴일') || t.includes('대체공휴일')) return 'school-vacation';
+  return null;
+}
+
+// 활동명에서 해당 학교 찾기
+function extractSchoolFromText(text) {
+  if (text.includes('증산초')) return '증산초';
+  if (text.includes('신도초')) return '신도초';
+  if (text.includes('삼성초')) return '삼성초';
+  if (text.includes('연서초')) return '연서초';
+  return null;
+}
+
+// 날짜로 담당 학교 찾기 (요일 기반)
+function getSchoolByDate(dateStr) {
+  const d = new Date(dateStr);
+  const day = d.getDay();
+  if (day === 1) return '증산초';
+  if (day === 2) return '신도초';
+  if (day === 4) return '삼성초';
+  if (day === 5) return '연서초';
+  return null;
+}
+
+async function syncSchedulesFromSheet() {
+  const statusEl = document.getElementById('sheet-sync-status');
+  if (statusEl) { statusEl.textContent = '시트 읽는 중...'; statusEl.style.color = '#2563eb'; }
+
+  let added = 0;
+  try {
+    // 6000행 이후 2026년 데이터 조각별로 가져오기
+    const ranges = ['A6000:J6500', 'A6500:J7000', 'A7000:J7500'];
+    for (const range of ranges) {
+      const url = `https://docs.google.com/spreadsheets/d/${SCHEDULE_SHEET_ID}/gviz/tq?tqx=out:csv&gid=0&range=${range}`;
+      let rows;
+      try {
+        rows = await fetchSheetCSV(null, null, url);
+      } catch (e) { continue; }
+
+      for (const row of rows) {
+        const dateStr = parseSheetDate(row[0]);
+        if (!dateStr || !dateStr.startsWith('202')) continue; // 2020년 이후만
+
+        const activityName = row[5] || '';
+        const notes = row[8] || '';
+        const type = classifyScheduleEvent(activityName, notes);
+        if (!type) continue;
+
+        // 학교 특정: 활동명에 있으면 우선, 없으면 날짜 요일로
+        let school = extractSchoolFromText(activityName + ' ' + notes);
+
+        // 공개수업/방학의 경우 날짜 기반으로도 학교 유추
+        if (!school) school = getSchoolByDate(dateStr);
+        if (!school) continue;
+
+        // 학교와 날짜 요일이 맞는지 검증
+        // (예: 삼성초 공개수업을 월요일에 기록했으면 스킵)
+        const schoolWeekday = { '증산초': 1, '신도초': 2, '삼성초': 4, '연서초': 5 };
+        const dateWeekday = new Date(dateStr).getDay();
+        if (schoolWeekday[school] !== undefined && schoolWeekday[school] !== dateWeekday) continue;
+
+        // 중복 체크
+        const exists = state.schedules.some(s => s.date === dateStr && s.school === school && s.type === type);
+        if (exists) continue;
+
+        const newEv = {
+          id: `sc-auto-${dateStr}-${school}`,
+          date: dateStr,
+          school,
+          type,
+          memo: activityName.substring(0, 60)
+        };
+        state.schedules.push(newEv);
+        added++;
+      }
+    }
+
+    if (added > 0) {
+      saveState();
+      renderCalendar();
+      renderDashboard();
+    }
+
+    if (statusEl) {
+      statusEl.textContent = added > 0 ? `✓ ${added}개 일정 추가됨` : '✓ 새 일정 없음';
+      statusEl.style.color = '#059669';
+    }
+  } catch (e) {
+    if (statusEl) { statusEl.textContent = '⚠ 시트 읽기 실패'; statusEl.style.color = '#dc2626'; }
+  }
+}
+
+// ==========================================================================
 // Google Sheets 연동 — 인원 현황 & 결석생 알림
 // ==========================================================================
 
@@ -1849,9 +1989,14 @@ function parseCSV(text) {
   return rows;
 }
 
-async function fetchSheetCSV(gid, sheetName) {
-  const base = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
-  const url = gid ? `${base}&gid=${gid}` : `${base}&sheet=${encodeURIComponent(sheetName)}`;
+async function fetchSheetCSV(gid, sheetName, directUrl) {
+  let url;
+  if (directUrl) {
+    url = directUrl;
+  } else {
+    const base = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
+    url = gid ? `${base}&gid=${gid}` : `${base}&sheet=${encodeURIComponent(sheetName)}`;
+  }
   const res = await fetch(url);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return parseCSV(await res.text());

@@ -558,7 +558,16 @@
           <!-- Schedule Manager Sidebar -->
           <div class="schedule-sidebar">
             <div class="sidebar-section-header" style="flex-direction: column; align-items: flex-start; gap: 0.75rem;">
-              <h3>등록된 학사 일정</h3>
+              <div style="display:flex;justify-content:space-between;align-items:center;width:100%">
+                <h3>등록된 학사 일정</h3>
+                <div style="text-align:right">
+                  <button id="btn-sync-schedules" class="btn-primary-sm" style="font-size:0.75rem;padding:0.4rem 0.7rem;gap:0.3rem;" title="나의 디지털 트윈 시트에서 새 학사 일정 자동 읽기">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                    시트 동기화
+                  </button>
+                  <div id="sheet-sync-status" style="font-size:0.65rem;color:#94a3b8;margin-top:2px"></div>
+                </div>
+              </div>
 
               <!-- 구글 캘린더 가져오기 안내 -->
               <div class="gcal-import-box">
