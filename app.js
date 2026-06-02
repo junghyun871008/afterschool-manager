@@ -112,13 +112,24 @@ const defaultSchedules = [
   { id: 'sc-h13', date: '2027-02-08', school: '증산초', type: 'school-vacation', memo: '설날 연휴 휴강' },
   { id: 'sc-h14', date: '2027-02-09', school: '신도초', type: 'school-vacation', memo: '설날 대체공휴일 휴강' },
 
-  // 기본 학사 일정 (시트 연동 확인 2026-06-03)
-  { id: 'sc-1', date: '2026-06-08', school: '증산초', type: 'school-vacation', memo: '증산초 재량휴업일 휴강' },
-  { id: 'sc-2', date: '2026-06-16', school: '신도초', type: 'openclass', memo: '학부모 공개수업 (신도초)' },
-  { id: 'sc-3', date: '2026-06-25', school: '삼성초', type: 'school-vacation', memo: '삼성초 개교기념일 휴강' },
-  // 시트에서 확인한 공개수업 (2026-06-03 추가)
-  { id: 'sc-oc1', date: '2026-06-11', school: '삼성초', type: 'openclass', memo: '학부모 공개수업 (삼성초)' },
-  { id: 'sc-oc2', date: '2026-06-15', school: '증산초', type: 'openclass', memo: '학부모 공개수업 (증산초)' }
+  // 기본 학사 일정 (나의 디지털 트윈 시트 연동 — 2026-06-03 확인)
+
+  // 3월 — 개교기념일
+  { id: 'sc-an1', date: '2026-03-24', school: '신도초', type: 'school-vacation', memo: '신도초 개교기념일 휴강' },
+  { id: 'sc-an2', date: '2026-03-27', school: '연서초', type: 'school-vacation', memo: '연서초 개교기념일 휴강' },
+
+  // 6월 — 재량휴업 & 공개수업 & 개교기념일
+  { id: 'sc-1',   date: '2026-06-08', school: '증산초', type: 'school-vacation', memo: '증산초 재량휴업일 휴강' },
+  { id: 'sc-oc1', date: '2026-06-11', school: '삼성초', type: 'openclass',       memo: '학부모 공개수업 (삼성초)' },
+  { id: 'sc-oc2', date: '2026-06-15', school: '증산초', type: 'openclass',       memo: '학부모 공개수업 (증산초)' },
+  { id: 'sc-3',   date: '2026-06-25', school: '삼성초', type: 'school-vacation', memo: '삼성초 개교기념일 휴강' },
+
+  // 7월 — 여름방학 (방과후 수업 방학)
+  { id: 'sc-sum1', date: '2026-07-21', school: '신도초', type: 'vacation', memo: '신도초 여름방학 — 방과후 수업 휴강' },
+  { id: 'sc-sum2', date: '2026-07-27', school: '증산초', type: 'vacation', memo: '증산초 여름방학 — 방과후 수업 휴강' },
+
+  // 10월 — 신도초 공개수업 (겨울학기)
+  { id: 'sc-oc3', date: '2026-10-20', school: '신도초', type: 'openclass', memo: '학부모 공개수업 (신도초)' }
 ];
 
 // --- Global Variables ---
@@ -232,6 +243,16 @@ function loadState() {
       for (const school of ['증산초', '신도초', '삼성초', '연서초']) {
         if (!state.schools[school].absentTodos) state.schools[school].absentTodos = [];
         if (!state.schools[school].prepTodos) state.schools[school].prepTodos = [];
+      }
+
+      // 데이터 정정: 잘못 기록된 신도초 공개수업 (2026-06-16) 제거
+      // 실제 신도초 공개수업은 2026-10-20
+      const wrongEvIdx = state.schedules.findIndex(s =>
+        s.date === '2026-06-16' && s.school === '신도초' && s.type === 'openclass'
+      );
+      if (wrongEvIdx !== -1) {
+        state.schedules.splice(wrongEvIdx, 1);
+        mergedAny = true;
       }
 
       if (mergedAny) {
