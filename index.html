@@ -89,22 +89,6 @@
             </svg>
             <span>클라우드 동기화</span>
           </button>
-          <button id="btn-export-data" class="btn-sync" title="데이터 백업 파일 내보내기 (다른 기기에서 불러오기 가능)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="17 8 12 3 7 8"/>
-              <line x1="12" y1="3" x2="12" y2="15"/>
-            </svg>
-            <span>내보내기</span>
-          </button>
-          <button id="btn-import-data" class="btn-sync btn-sync-import" title="다른 기기에서 내보낸 백업 파일 불러오기">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="7 16 12 21 17 16"/>
-              <line x1="12" y1="21" x2="12" y2="9"/>
-            </svg>
-            <span>불러오기</span>
-          </button>
           <input type="file" id="import-data-input" accept=".json" style="display:none;">
           <button id="btn-refresh-sheets" class="btn-sync" title="Google Sheets에서 인원·결석 데이터 새로고침">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -960,6 +944,21 @@
           <button type="button" class="btn-secondary" id="btn-disconnect-cloud" style="margin-right:auto;color:#dc2626;border-color:rgba(220,38,38,0.3)">연결 해제</button>
           <button type="button" class="btn-secondary" id="btn-cancel-cloud-modal">취소</button>
           <button type="button" class="btn-primary" id="btn-save-cloud-settings">☁️ 연결하기</button>
+        </div>
+
+        <div class="cloud-backup-section">
+          <div class="cloud-backup-title">🗂 오프라인 백업 (선택사항)</div>
+          <p class="cloud-backup-desc">Firebase 연결 없이도 JSON 파일로 데이터를 저장/복원할 수 있습니다.</p>
+          <div style="display:flex;gap:0.5rem;margin-top:0.5rem;">
+            <button id="btn-export-data" class="btn-secondary" style="flex:1;font-size:0.8rem;padding:0.5rem;display:flex;align-items:center;justify-content:center;gap:0.35rem;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              JSON 내보내기
+            </button>
+            <button id="btn-import-data" class="btn-secondary" style="flex:1;font-size:0.8rem;padding:0.5rem;display:flex;align-items:center;justify-content:center;gap:0.35rem;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 16 12 21 17 16"/><line x1="12" y1="21" x2="12" y2="9"/></svg>
+              JSON 불러오기
+            </button>
+          </div>
         </div>
       </div>
     </div>
