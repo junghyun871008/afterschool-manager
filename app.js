@@ -994,20 +994,24 @@ function createCalendarCell(dayNum, isOtherMonth) {
     if (scheduledKit) {
       const kitBadge = document.createElement('div');
       kitBadge.className = 'cell-kit-badge';
-      kitBadge.style.fontSize = '1.15rem';
+      const isMobile = window.innerWidth <= 768;
+      kitBadge.style.fontSize = isMobile ? '0.7rem' : '1.15rem';
       kitBadge.style.background = 'rgba(124, 58, 237, 0.12)';
       kitBadge.style.border = '1px solid rgba(124, 58, 237, 0.2)';
-      kitBadge.style.color = '#c084fc';
+      kitBadge.style.color = '#7c3aed';
       kitBadge.style.borderRadius = '4px';
-      kitBadge.style.padding = '4px 6px';
-      kitBadge.style.marginTop = '4px';
+      kitBadge.style.padding = isMobile ? '2px 3px' : '4px 6px';
+      kitBadge.style.marginTop = isMobile ? '2px' : '4px';
       kitBadge.style.maxWidth = '100%';
       kitBadge.style.overflow = 'hidden';
       kitBadge.style.textOverflow = 'ellipsis';
-      kitBadge.style.whiteSpace = 'normal';
-      kitBadge.style.wordBreak = 'break-all';
-      kitBadge.style.lineHeight = '1.3';
-      kitBadge.textContent = `${scheduledKit.session}차: ${scheduledKit.name}`;
+      kitBadge.style.whiteSpace = 'nowrap';
+      kitBadge.style.lineHeight = '1.2';
+      kitBadge.style.fontWeight = '700';
+      // 모바일: "13차" 축약, PC: "13차: 앵무새글라이더"
+      kitBadge.textContent = isMobile
+        ? `${scheduledKit.session}차`
+        : `${scheduledKit.session}차: ${scheduledKit.name}`;
       kitBadge.title = `${scheduledKit.session}차시: ${scheduledKit.name} (${scheduledKit.topic})`;
       cell.appendChild(kitBadge);
     }

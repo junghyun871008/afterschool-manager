@@ -1920,23 +1920,53 @@ body {
     justify-content: center;
   }
 
+  /* 달력 — 모바일 가독성 개선 */
   .day-cell {
-    aspect-ratio: 1 / 1;
-    padding: 0.25rem;
+    aspect-ratio: unset;
+    height: 80px;
+    overflow: hidden;
+    padding: 0.3rem 0.2rem;
   }
 
   .day-number {
-    font-size: 0.8rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #334155;
   }
 
-  /* 모바일에서 달력 셀의 학교명/교구 배지 크기 축소 */
   .cell-school-label {
-    font-size: 0.75rem !important;
+    font-size: 0.78rem !important;
+    font-weight: 800 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+    margin-top: 1px !important;
   }
 
   .cell-kit-badge {
-    font-size: 0.65rem !important;
-    padding: 2px 3px !important;
+    font-size: 0.68rem !important;
+    padding: 1px 3px !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    max-width: 100% !important;
+  }
+
+  .event-dot-indicator {
+    height: 8px;
+    width: 8px;
+  }
+
+  .calendar-weekdays {
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  .day-events-dots {
+    gap: 2px;
+    margin-top: 2px;
   }
 
   /* 인벤토리 그리드 모바일 1열 */
@@ -2627,6 +2657,55 @@ body {
   font-size: 0.76rem;
   color: #94a3b8;
   line-height: 1.4;
+}
+
+/* 구글 캘린더 가져오기 박스 */
+.gcal-import-box {
+  background: rgba(37,99,235,0.04);
+  border: 1px solid rgba(37,99,235,0.15);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+  width: 100%;
+}
+
+.gcal-import-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1d4ed8;
+  margin-bottom: 0.5rem;
+}
+
+.gcal-import-steps {
+  padding-left: 1.1rem;
+  font-size: 0.76rem;
+  color: #475569;
+  line-height: 1.6;
+  margin-bottom: 0.75rem;
+}
+
+.gcal-import-steps strong { color: #1e40af; }
+
+.btn-gcal-import {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.55rem;
+  background: var(--grad-primary);
+  color: #ffffff;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-primary);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  border: none;
+}
+
+.btn-gcal-import:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 0 12px rgba(37,99,235,0.3);
 }
 
 /* 연결됨 뷰 */
