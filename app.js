@@ -135,7 +135,8 @@ document.addEventListener('DOMContentLoaded', () => {
   setupInventoryEventListeners();
   setupSchedulerEventListeners();
   setupDataSyncEventListeners();
-  
+  setupSheetsRefreshButton();
+
   // Hook the clear inventory button directly
   const clearInvBtn = document.getElementById('btn-clear-inventory');
   if (clearInvBtn) {
@@ -155,6 +156,10 @@ document.addEventListener('DOMContentLoaded', () => {
   renderCalendar();
   renderInventory();
   renderScheduler();
+
+  // Google Sheets 연동 (비동기 백그라운드)
+  loadEnrollmentFromSheets();
+  loadAbsencesFromSheets();
 });
 
 // --- State Management ---
@@ -1720,6 +1725,178 @@ function setupSchedulerEventListeners() {
       renderCalendar();
     }
   });
+}
+
+// ==========================================================================
+// Google Sheets 연동 — 인원 현황 & 결석생 알림
+// ==========================================================================
+
+const SHEET_ID = '1JutjMvwsc9O8Db6kilySSsFGBd5HB-j0xYsJHCk3vAA';
+const DASHBOARD_GID = '1344548639';
+
+function parseCSV(text) {
+  const rows = [];
+  let row = [], inQ = false, field = '';
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === '"') {
+      if (inQ && text[i+1] === '"') { field += '"'; i++; }
+      else inQ = !inQ;
+    } else if (ch === ',' && !inQ) {
+      row.push(field.trim()); field = '';
+    } else if ((ch === '\n' || ch === '\r') && !inQ) {
+      if (ch === '\r' && text[i+1] === '\n') i++;
+      row.push(field.trim()); if (row.some(c => c)) rows.push(row);
+      row = []; field = '';
+    } else { field += ch; }
+  }
+  if (field || row.length) { row.push(field.trim()); if (row.some(c => c)) rows.push(row); }
+  return rows;
+}
+
+async function fetchSheetCSV(gid, sheetName) {
+  const base = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
+  const url = gid ? `${base}&gid=${gid}` : `${base}&sheet=${encodeURIComponent(sheetName)}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return parseCSV(await res.text());
+}
+
+// 인원 현황 (대시보드 탭)
+async function loadEnrollmentFromSheets() {
+  try {
+    const rows = await fetchSheetCSV(DASHBOARD_GID, null);
+    // 헤더 행(0): [학교명, 1, 2, 3, 전체합계, ...]
+    // 데이터 행(1~): [학교명, 1부수, 2부수, 3부수, 합계, ...]
+    const schoolMap = { '삼성초': '삼성초', '신도초': '신도초', '연서초': '연서초', '증산초': '증산초' };
+    rows.slice(1).forEach(row => {
+      const name = row[0];
+      const matched = Object.keys(schoolMap).find(k => name && name.includes(k));
+      if (!matched) return;
+      const p1 = parseInt(row[1]) || 0;
+      const p2 = parseInt(row[2]) || 0;
+      const p3 = parseInt(row[3]) || 0;
+      const total = parseInt(row[4]) || (p1 + p2 + p3);
+      const el = document.getElementById(`enrollment-${matched}`);
+      if (!el) return;
+      let html = '';
+      if (p1) html += `<span class="enroll-part">1부 ${p1}명</span>`;
+      if (p2) html += `<span class="enroll-part">2부 ${p2}명</span>`;
+      if (p3) html += `<span class="enroll-part">3부 ${p3}명</span>`;
+      html += `<strong class="enroll-total">총 ${total}명</strong>`;
+      el.innerHTML = html;
+    });
+  } catch (e) {
+    console.warn('인원 시트 연동 실패:', e.message);
+    ['증산초','신도초','삼성초','연서초'].forEach(s => {
+      const el = document.getElementById(`enrollment-${s}`);
+      if (el) el.innerHTML = '<span class="enroll-loading">시트 연동 실패 (오프라인?)</span>';
+    });
+  }
+}
+
+// 결석생 알림 (전체학생명단 탭)
+async function loadAbsencesFromSheets() {
+  const schools = ['증산초','신도초','삼성초','연서초'];
+  try {
+    const rows = await fetchSheetCSV(null, '전체학생명단');
+    if (rows.length < 2) throw new Error('데이터 없음');
+
+    // 헤더에서 컬럼 인덱스 찾기
+    const header = rows[0].map(h => h.replace(/\s/g, '').toLowerCase());
+    const colSchool = header.findIndex(h => h.includes('학교') || h === '학교명');
+    const colName = header.findIndex(h => h === '이름' || h.includes('이름'));
+    const colPart = header.findIndex(h => h.includes('현재부') || h.includes('부'));
+    const colMonth = header.findIndex(h => h === '월');
+
+    // 이번 달 (숫자)
+    const nowMonth = new Date().getMonth() + 1;
+    // 이번 주차 (월 내 1~5주)
+    const nowWeek = Math.ceil(new Date().getDate() / 7);
+    // 주차 컬럼: 헤더에서 "1주차","2주차" 등 찾기
+    const weekColIdx = header.findIndex(h => h.includes(`${nowWeek}주`) || h === `${nowWeek}주차`);
+
+    // 학교별 결석생 맵
+    const absenceMap = {};
+    schools.forEach(s => absenceMap[s] = []);
+
+    rows.slice(1).forEach(row => {
+      // 이번 달 필터
+      if (colMonth >= 0) {
+        const rowMonth = parseInt(row[colMonth]);
+        if (rowMonth && rowMonth !== nowMonth) return;
+      }
+      const schoolCell = colSchool >= 0 ? row[colSchool] : '';
+      const matched = schools.find(s => schoolCell.includes(s));
+      if (!matched) return;
+
+      // 이번 주차 결석 확인
+      if (weekColIdx >= 0) {
+        const weekVal = (row[weekColIdx] || '').trim();
+        const isAbsent = weekVal.includes('결석') || weekVal === 'x' || weekVal === 'X' || weekVal === '×';
+        if (!isAbsent) return;
+      } else {
+        // 주차 컬럼 못 찾으면 '상태' 컬럼으로 fallback
+        const colStatus = header.findIndex(h => h === '상태');
+        if (colStatus < 0) return;
+        const status = (row[colStatus] || '').trim();
+        if (!status.includes('결석')) return;
+      }
+
+      const name = colName >= 0 ? row[colName] : '';
+      const part = colPart >= 0 ? row[colPart] : '';
+      if (name) absenceMap[matched].push({ name, part });
+    });
+
+    // 각 학교 카드에 결석생 표시
+    schools.forEach(school => {
+      const listEl = document.getElementById(`absence-list-sheet-${school}`);
+      const badgeEl = document.getElementById(`sync-badge-${school}`);
+      if (!listEl) return;
+
+      const absentees = absenceMap[school];
+      if (absentees.length === 0) {
+        listEl.innerHTML = '<span class="absence-empty">이번 주 결석생 없음 ✓</span>';
+      } else {
+        listEl.innerHTML = absentees.map(a =>
+          `<div class="absence-tag">
+            <span class="absence-name">${a.name}</span>
+            ${a.part ? `<span style="font-size:0.6rem;color:#9ca3af">${a.part}</span>` : ''}
+            <span class="absence-hint">→ 다음주 교구 챙기기</span>
+          </div>`
+        ).join('');
+      }
+
+      if (badgeEl) {
+        badgeEl.className = 'sheets-sync-badge synced';
+        const now = new Date();
+        badgeEl.textContent = `✓ 시트 연동 완료 (${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')})`;
+      }
+    });
+
+  } catch (e) {
+    console.warn('결석 시트 연동 실패:', e.message);
+    schools.forEach(school => {
+      const listEl = document.getElementById(`absence-list-sheet-${school}`);
+      const badgeEl = document.getElementById(`sync-badge-${school}`);
+      if (listEl) listEl.innerHTML = '<span class="absence-empty">시트 연동 실패 — 수동 입력 이용</span>';
+      if (badgeEl) { badgeEl.className = 'sheets-sync-badge error'; badgeEl.textContent = '✗ 연동 실패'; }
+    });
+  }
+}
+
+// 시트 새로고침 버튼 핸들러
+function setupSheetsRefreshButton() {
+  const btn = document.getElementById('btn-refresh-sheets');
+  if (btn) {
+    btn.addEventListener('click', async () => {
+      btn.textContent = '🔄 연동 중...';
+      btn.disabled = true;
+      await Promise.all([loadEnrollmentFromSheets(), loadAbsencesFromSheets()]);
+      btn.textContent = '🔄 시트 새로고침';
+      btn.disabled = false;
+    });
+  }
 }
 
 // ==========================================================================

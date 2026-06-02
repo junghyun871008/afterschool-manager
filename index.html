@@ -100,6 +100,14 @@
             <span>불러오기</span>
           </button>
           <input type="file" id="import-data-input" accept=".json" style="display:none;">
+          <button id="btn-refresh-sheets" class="btn-sync" title="Google Sheets에서 인원·결석 데이터 새로고침">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="23 4 23 10 17 10"/>
+              <polyline points="1 20 1 14 7 14"/>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
+            <span>시트 새로고침</span>
+          </button>
           <div class="theme-badge">
             <span class="badge-dot pulse"></span>
             <span class="badge-text">기기 저장소 (내보내기로 동기화)</span>
@@ -178,8 +186,11 @@
                     </div>
                     <span class="school-date-label" id="school-date-증산초" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">2026-06-01</span>
                   </div>
-                  <div class="school-timetable-badge" id="timetable-증산초" style="margin-top: 0.35rem; font-size: 0.75rem; color: #a5b4fc; background: rgba(79, 70, 229, 0.1); border: 1px solid rgba(79, 70, 229, 0.2); padding: 0.2rem 0.5rem; border-radius: 4px; display: inline-block;">
+                  <div class="school-timetable-badge" id="timetable-증산초" style="margin-top: 0.35rem; font-size: 0.75rem; color: #2563eb; background: rgba(37, 99, 235, 0.08); border: 1px solid rgba(37, 99, 235, 0.18); padding: 0.2rem 0.5rem; border-radius: 4px; display: inline-block;">
                     ⏰ 1부 1:10~2:40 / 2부 2:50~4:20
+                  </div>
+                  <div class="enrollment-row" id="enrollment-증산초">
+                    <span class="enroll-loading">인원 로딩 중...</span>
                   </div>
                 </div>
                 <div class="school-card-body">
@@ -193,12 +204,18 @@
                   </div>
                   
                   <div class="memo-box" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                    <!-- 시트 연동 결석 알림 -->
+                    <div class="absence-alert-section" id="absence-section-증산초">
+                      <div class="absence-alert-header">⚠️ 이번 주 결석생 (시트 자동)</div>
+                      <div id="absence-list-sheet-증산초"><span class="absence-empty">로딩 중...</span></div>
+                      <div class="sheets-sync-badge" id="sync-badge-증산초">● 시트 연동 중</div>
+                    </div>
                     <div>
                       <span class="info-label" style="display: flex; justify-content: space-between; align-items: center;">
-                        <span>👤 결석 학생 & 이월 교구 챙기기</span>
+                        <span>👤 결석 학생 & 이월 교구 챙기기 (수동)</span>
                       </span>
                       <div style="display: flex; gap: 0.35rem; margin-top: 0.25rem;">
-                        <input type="text" id="absent-input-증산초" class="todo-input-field" placeholder="학생명 및 필요 차시 입력..." style="flex: 1; padding: 0.4rem; font-size: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border-glass); border-radius: 4px; color: white;">
+                        <input type="text" id="absent-input-증산초" class="todo-input-field" placeholder="학생명 및 필요 차시 입력...">
                         <button class="btn-primary-sm btn-todo-add" data-school="증산초" data-type="absent" style="padding: 0.4rem 0.6rem; border-radius: 4px; font-weight: bold;">+</button>
                       </div>
                       <ul class="todo-list-container" id="absent-list-증산초" style="margin-top: 0.35rem; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 0.25rem;"></ul>
@@ -248,8 +265,11 @@
                     </div>
                     <span class="school-date-label" id="school-date-신도초" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">2026-06-02</span>
                   </div>
-                  <div class="school-timetable-badge" id="timetable-신도초" style="margin-top: 0.35rem; font-size: 0.75rem; color: #34d399; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 0.2rem 0.5rem; border-radius: 4px; display: inline-block;">
+                  <div class="school-timetable-badge" id="timetable-신도초" style="margin-top: 0.35rem; font-size: 0.75rem; color: #059669; background: rgba(5, 150, 105, 0.08); border: 1px solid rgba(5, 150, 105, 0.18); padding: 0.2rem 0.5rem; border-radius: 4px; display: inline-block;">
                     ⏰ 1부 2:00~2:50 / 2부 3:00~3:50
+                  </div>
+                  <div class="enrollment-row" id="enrollment-신도초">
+                    <span class="enroll-loading">인원 로딩 중...</span>
                   </div>
                 </div>
                 <div class="school-card-body">
@@ -261,14 +281,19 @@
                     <div class="planned-kit-name" id="planned-kit-name-신도초">로딩 중...</div>
                     <div class="planned-kit-desc" id="planned-kit-desc-신도초">로딩 중...</div>
                   </div>
-                  
+
                   <div class="memo-box" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                    <div class="absence-alert-section" id="absence-section-신도초">
+                      <div class="absence-alert-header">⚠️ 이번 주 결석생 (시트 자동)</div>
+                      <div id="absence-list-sheet-신도초"><span class="absence-empty">로딩 중...</span></div>
+                      <div class="sheets-sync-badge" id="sync-badge-신도초">● 시트 연동 중</div>
+                    </div>
                     <div>
                       <span class="info-label" style="display: flex; justify-content: space-between; align-items: center;">
-                        <span>👤 결석 학생 & 이월 교구 챙기기</span>
+                        <span>👤 결석 학생 & 이월 교구 챙기기 (수동)</span>
                       </span>
                       <div style="display: flex; gap: 0.35rem; margin-top: 0.25rem;">
-                        <input type="text" id="absent-input-신도초" class="todo-input-field" placeholder="학생명 및 필요 차시 입력..." style="flex: 1; padding: 0.4rem; font-size: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border-glass); border-radius: 4px; color: white;">
+                        <input type="text" id="absent-input-신도초" class="todo-input-field" placeholder="학생명 및 필요 차시 입력...">
                         <button class="btn-primary-sm btn-todo-add" data-school="신도초" data-type="absent" style="padding: 0.4rem 0.6rem; border-radius: 4px; font-weight: bold;">+</button>
                       </div>
                       <ul class="todo-list-container" id="absent-list-신도초" style="margin-top: 0.35rem; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 0.25rem;"></ul>
@@ -318,8 +343,11 @@
                     </div>
                     <span class="school-date-label" id="school-date-삼성초" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">2026-06-04</span>
                   </div>
-                  <div class="school-timetable-badge" id="timetable-삼성초" style="margin-top: 0.35rem; font-size: 0.75rem; color: #fbbf24; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); padding: 0.2rem 0.5rem; border-radius: 4px; display: inline-block;">
+                  <div class="school-timetable-badge" id="timetable-삼성초" style="margin-top: 0.35rem; font-size: 0.75rem; color: #b45309; background: rgba(217, 119, 6, 0.08); border: 1px solid rgba(217, 119, 6, 0.18); padding: 0.2rem 0.5rem; border-radius: 4px; display: inline-block;">
                     ⏰ 1부 2:00~2:40 / 2부 2:50~3:30 / 3부 3:40~4:20
+                  </div>
+                  <div class="enrollment-row" id="enrollment-삼성초">
+                    <span class="enroll-loading">인원 로딩 중...</span>
                   </div>
                 </div>
                 <div class="school-card-body">
@@ -331,14 +359,19 @@
                     <div class="planned-kit-name" id="planned-kit-name-삼성초">로딩 중...</div>
                     <div class="planned-kit-desc" id="planned-kit-desc-삼성초">로딩 중...</div>
                   </div>
-                  
+
                   <div class="memo-box" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                    <div class="absence-alert-section" id="absence-section-삼성초">
+                      <div class="absence-alert-header">⚠️ 이번 주 결석생 (시트 자동)</div>
+                      <div id="absence-list-sheet-삼성초"><span class="absence-empty">로딩 중...</span></div>
+                      <div class="sheets-sync-badge" id="sync-badge-삼성초">● 시트 연동 중</div>
+                    </div>
                     <div>
                       <span class="info-label" style="display: flex; justify-content: space-between; align-items: center;">
-                        <span>👤 결석 학생 & 이월 교구 챙기기</span>
+                        <span>👤 결석 학생 & 이월 교구 챙기기 (수동)</span>
                       </span>
                       <div style="display: flex; gap: 0.35rem; margin-top: 0.25rem;">
-                        <input type="text" id="absent-input-삼성초" class="todo-input-field" placeholder="학생명 및 필요 차시 입력..." style="flex: 1; padding: 0.4rem; font-size: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border-glass); border-radius: 4px; color: white;">
+                        <input type="text" id="absent-input-삼성초" class="todo-input-field" placeholder="학생명 및 필요 차시 입력...">
                         <button class="btn-primary-sm btn-todo-add" data-school="삼성초" data-type="absent" style="padding: 0.4rem 0.6rem; border-radius: 4px; font-weight: bold;">+</button>
                       </div>
                       <ul class="todo-list-container" id="absent-list-삼성초" style="margin-top: 0.35rem; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 0.25rem;"></ul>
@@ -388,8 +421,11 @@
                     </div>
                     <span class="school-date-label" id="school-date-연서초" style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">2026-06-05</span>
                   </div>
-                  <div class="school-timetable-badge" id="timetable-연서초" style="margin-top: 0.35rem; font-size: 0.75rem; color: #f472b6; background: rgba(236, 72, 153, 0.1); border: 1px solid rgba(236, 72, 153, 0.2); padding: 0.2rem 0.5rem; border-radius: 4px; display: inline-block;">
+                  <div class="school-timetable-badge" id="timetable-연서초" style="margin-top: 0.35rem; font-size: 0.75rem; color: #9d174d; background: rgba(190, 24, 93, 0.08); border: 1px solid rgba(190, 24, 93, 0.18); padding: 0.2rem 0.5rem; border-radius: 4px; display: inline-block;">
                     ⏰ 1부 1:40~2:20 / 2부 2:30~3:10 / 3부 3:20~4:00
+                  </div>
+                  <div class="enrollment-row" id="enrollment-연서초">
+                    <span class="enroll-loading">인원 로딩 중...</span>
                   </div>
                 </div>
                 <div class="school-card-body">
@@ -401,14 +437,19 @@
                     <div class="planned-kit-name" id="planned-kit-name-연서초">로딩 중...</div>
                     <div class="planned-kit-desc" id="planned-kit-desc-연서초">로딩 중...</div>
                   </div>
-                  
+
                   <div class="memo-box" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                    <div class="absence-alert-section" id="absence-section-연서초">
+                      <div class="absence-alert-header">⚠️ 이번 주 결석생 (시트 자동)</div>
+                      <div id="absence-list-sheet-연서초"><span class="absence-empty">로딩 중...</span></div>
+                      <div class="sheets-sync-badge" id="sync-badge-연서초">● 시트 연동 중</div>
+                    </div>
                     <div>
                       <span class="info-label" style="display: flex; justify-content: space-between; align-items: center;">
-                        <span>👤 결석 학생 & 이월 교구 챙기기</span>
+                        <span>👤 결석 학생 & 이월 교구 챙기기 (수동)</span>
                       </span>
                       <div style="display: flex; gap: 0.35rem; margin-top: 0.25rem;">
-                        <input type="text" id="absent-input-연서초" class="todo-input-field" placeholder="학생명 및 필요 차시 입력..." style="flex: 1; padding: 0.4rem; font-size: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border-glass); border-radius: 4px; color: white;">
+                        <input type="text" id="absent-input-연서초" class="todo-input-field" placeholder="학생명 및 필요 차시 입력...">
                         <button class="btn-primary-sm btn-todo-add" data-school="연서초" data-type="absent" style="padding: 0.4rem 0.6rem; border-radius: 4px; font-weight: bold;">+</button>
                       </div>
                       <ul class="todo-list-container" id="absent-list-연서초" style="margin-top: 0.35rem; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 0.25rem;"></ul>
