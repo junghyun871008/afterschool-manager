@@ -2491,6 +2491,48 @@ body {
 .bottom-nav { background: rgba(15,23,42,0.97) !important; }
 
 /* ==========================================================================
+   사이드바 — 항상 다크 배경이므로 밝은 텍스트 강제 적용
+   (라이트 테마 변수 덮어쓰기)
+   ========================================================================== */
+.sidebar .menu-item {
+  color: #94a3b8;
+}
+.sidebar .menu-item .menu-icon {
+  stroke: #94a3b8;
+}
+.sidebar .menu-item:hover {
+  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.07);
+}
+.sidebar .menu-item:hover .menu-icon {
+  stroke: #e2e8f0;
+}
+.sidebar .menu-item.active {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 0 12px rgba(167, 139, 250, 0.08);
+}
+.sidebar .menu-item.active .menu-icon {
+  stroke: #a78bfa;
+  filter: drop-shadow(0 0 4px rgba(139, 92, 246, 0.5));
+}
+.sidebar .menu-item.active path,
+.sidebar .menu-item.active line,
+.sidebar .menu-item.active rect,
+.sidebar .menu-item.active circle,
+.sidebar .menu-item.active polyline {
+  stroke: #a78bfa;
+}
+.quick-status-card {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.status-title { color: #94a3b8; }
+.status-value { color: #ffffff; }
+.status-detail { color: #64748b; }
+
+/* ==========================================================================
    인원 현황 표시 (Google Sheets 연동)
    ========================================================================== */
 
