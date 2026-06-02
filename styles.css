@@ -255,6 +255,48 @@ body {
   font-size: 0.95rem;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.btn-sync {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  color: #a5b4fc;
+  padding: 0.45rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: var(--font-primary);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.btn-sync:hover {
+  background: rgba(99, 102, 241, 0.18);
+  border-color: rgba(99, 102, 241, 0.5);
+  color: #ffffff;
+}
+
+.btn-sync-import {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.25);
+  color: #6ee7b7;
+}
+
+.btn-sync-import:hover {
+  background: rgba(16, 185, 129, 0.18);
+  border-color: rgba(16, 185, 129, 0.5);
+  color: #ffffff;
+}
+
 .theme-badge {
   display: flex;
   align-items: center;
@@ -1813,16 +1855,49 @@ body {
   }
   
   .top-bar .header-actions {
-    align-self: flex-end;
+    align-self: stretch;
+    justify-content: flex-start;
   }
-  
+
+  .theme-badge {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.75rem;
+  }
+
+  .btn-sync span {
+    display: none; /* 모바일: 아이콘만 표시 */
+  }
+
+  .btn-sync {
+    padding: 0.5rem 0.6rem;
+    border-radius: 50%;
+    min-width: 36px;
+    min-height: 36px;
+    justify-content: center;
+  }
+
   .day-cell {
     aspect-ratio: 1 / 1;
     padding: 0.25rem;
   }
-  
+
   .day-number {
     font-size: 0.8rem;
+  }
+
+  /* 모바일에서 달력 셀의 학교명/교구 배지 크기 축소 */
+  .cell-school-label {
+    font-size: 0.75rem !important;
+  }
+
+  .cell-kit-badge {
+    font-size: 0.65rem !important;
+    padding: 2px 3px !important;
+  }
+
+  /* 인벤토리 그리드 모바일 1열 */
+  .inventory-grid {
+    grid-template-columns: 1fr;
   }
 }
 

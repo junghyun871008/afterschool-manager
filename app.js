@@ -134,6 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupCalendarEventListeners();
   setupInventoryEventListeners();
   setupSchedulerEventListeners();
+  setupDataSyncEventListeners();
   
   // Hook the clear inventory button directly
   const clearInvBtn = document.getElementById('btn-clear-inventory');
@@ -256,13 +257,9 @@ function saveState() {
 
 // --- Initialize Calendar View Date ---
 function initCalendarDate() {
-  const today = new Date(2026, 4, 31); // May 31, 2026
+  const today = new Date();
   currentYear = today.getFullYear();
-  currentMonth = today.getMonth() + 1; // June 2026
-  if (currentMonth > 11) {
-    currentMonth = 0;
-    currentYear++;
-  }
+  currentMonth = today.getMonth(); // 0-indexed
 }
 
 // --- Navigation / Tab Controller ---
@@ -305,7 +302,7 @@ function setupNavigation() {
 
 // --- Helper: Date & Week Calculations ---
 function updateDateTimeDisplay() {
-  const today = new Date(2026, 4, 31); // May 31, 2026
+  const today = new Date();
   const year = today.getFullYear();
   const month = today.getMonth() + 1;
   const date = today.getDate();
@@ -340,9 +337,9 @@ function updateDateTimeDisplay() {
   }
 }
 
-// Get the Monday-Sunday date range of the current week (based on May 31, 2026)
+// Get the Monday-Sunday date range of the current week
 function getCurrentWeekDateRange() {
-  const today = new Date(2026, 4, 31); // Anchor date: 2026-05-31 (Sunday)
+  const today = new Date();
   const day = today.getDay();
   
   let baseDate = new Date(today);
@@ -789,9 +786,13 @@ function setupDashboardEventListeners() {
 function generateWeeklyBriefing() {
   const weekDates = getCurrentWeekDateRange();
   
+  const now = new Date();
+  const nowY = now.getFullYear();
+  const nowM = now.getMonth() + 1;
+  const weekOfMonth = Math.ceil(now.getDate() / 7);
   let briefingHTML = ``;
   briefingHTML += `<h4>📅 이번 주 출강 정보 브리핑</h4>`;
-  briefingHTML += `<p><strong>2026년 6월 1주차</strong> 수업 및 교구 준비 가이드입니다.</p>`;
+  briefingHTML += `<p><strong>${nowY}년 ${nowM}월 ${weekOfMonth}주차</strong> 수업 및 교구 준비 가이드입니다.</p>`;
   
   let alertEvents = [];
   let kitList = [];
@@ -870,7 +871,8 @@ function generateWeeklyBriefing() {
   
   const timestampEl = document.getElementById('briefing-timestamp');
   if (timestampEl) {
-    timestampEl.textContent = `마지막 분석: 2026년 5월 31일 02:06`;
+    const ts = new Date();
+    timestampEl.textContent = `마지막 분석: ${ts.getFullYear()}년 ${ts.getMonth()+1}월 ${ts.getDate()}일 ${String(ts.getHours()).padStart(2,'0')}:${String(ts.getMinutes()).padStart(2,'0')}`;
   }
 }
 
@@ -911,7 +913,7 @@ function renderCalendar() {
   const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
   const prevMonthTotalDays = new Date(currentYear, currentMonth, 0).getDate();
   
-  const today = new Date(2026, 4, 31);
+  const today = new Date();
 
   // Prev month offset
   for (let i = firstDayIndex - 1; i >= 0; i--) {
@@ -1108,6 +1110,16 @@ function deleteSchedule(id) {
   renderDashboard();
 }
 
+function openScheduleModal(dateStr, school) {
+  const modal = document.getElementById('schedule-modal');
+  document.getElementById('schedule-date').value = dateStr || '';
+  if (school) {
+    const schoolSelect = document.getElementById('schedule-school');
+    if (schoolSelect) schoolSelect.value = school;
+  }
+  modal.classList.add('active');
+}
+
 function setupCalendarEventListeners() {
   const scheduleModal = document.getElementById('schedule-modal');
   
@@ -1130,7 +1142,7 @@ function setupCalendarEventListeners() {
   });
 
   document.getElementById('btn-add-schedule-trigger').addEventListener('click', () => {
-    const today = new Date(2026, 4, 31);
+    const today = new Date();
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const dd = String(today.getDate()).padStart(2, '0');
@@ -1400,7 +1412,7 @@ function setupInventoryEventListeners() {
     const reason = document.getElementById('inv-reason').value;
     const memo = document.getElementById('inv-memo').value;
     
-    const today = new Date(2026, 4, 31);
+    const today = new Date();
     const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
     const newItem = {
@@ -1708,4 +1720,70 @@ function setupSchedulerEventListeners() {
       renderCalendar();
     }
   });
+}
+
+// ==========================================================================
+// Data Export / Import  (PC ↔ 모바일 데이터 동기화 방법)
+// ==========================================================================
+
+function exportData() {
+  const dataStr = JSON.stringify(state, null, 2);
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const today = new Date();
+  const dateTag = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
+  a.href = url;
+  a.download = `afterschool_backup_${dateTag}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  alert('데이터가 백업 파일로 저장되었습니다.\n이 파일을 다른 기기에서 불러오면 데이터가 동기화됩니다.');
+}
+
+function importData(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if (!parsed.masterKits || !parsed.schools) {
+        alert('올바른 백업 파일이 아닙니다. 방과후 매니저에서 내보낸 파일을 선택해 주세요.');
+        return;
+      }
+      if (!confirm('현재 저장된 모든 데이터를 불러온 백업 파일로 덮어쓰시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) return;
+      state.masterKits = parsed.masterKits || [...defaultMasterKits];
+      state.schools = parsed.schools || state.schools;
+      state.schedules = parsed.schedules || [];
+      state.inventory = parsed.inventory || [];
+      state.schoolMonthlyPlans = parsed.schoolMonthlyPlans || {};
+      saveState();
+      renderDashboard();
+      renderCalendar();
+      renderInventory();
+      renderScheduler();
+      alert('데이터를 성공적으로 불러왔습니다!');
+    } catch (err) {
+      alert('파일을 읽는 중 오류가 발생했습니다. 올바른 JSON 백업 파일인지 확인해 주세요.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function setupDataSyncEventListeners() {
+  const exportBtn = document.getElementById('btn-export-data');
+  const importInput = document.getElementById('import-data-input');
+  const importBtn = document.getElementById('btn-import-data');
+
+  if (exportBtn) {
+    exportBtn.addEventListener('click', exportData);
+  }
+  if (importBtn && importInput) {
+    importBtn.addEventListener('click', () => importInput.click());
+    importInput.addEventListener('change', (e) => {
+      importData(e.target.files[0]);
+      e.target.value = '';
+    });
+  }
 }
