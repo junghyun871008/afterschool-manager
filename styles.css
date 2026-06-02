@@ -1339,17 +1339,18 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
-/* 모바일: 하단 시트로 표시 — 키보드가 올라와도 스크롤 가능 */
+/* 모바일: 하단 시트 — 바텀 네비 위에 표시, 스크롤 가능 */
 @media (max-width: 768px) {
   .modal-overlay {
     align-items: flex-end;
     padding-bottom: 0;
+    z-index: 10000; /* 바텀 네비(9999)보다 위 */
   }
 
   .modal-card {
     width: 100%;
     max-width: 100%;
-    max-height: 88vh;
+    max-height: 90vh;
     border-radius: 20px 20px 0 0;
     transform: translateY(100%);
   }
@@ -1359,8 +1360,23 @@ body {
   }
 
   .modal-body {
-    padding: 1.25rem;
-    padding-bottom: 2rem;
+    padding: 1rem 1.25rem;
+    padding-bottom: 2.5rem;
+  }
+
+  /* 모바일에서 Firebase 설정 안내문 기본 접기 */
+  #cloud-setup-guide {
+    display: none;
+  }
+
+  #cloud-setup-guide.expanded {
+    display: block;
+    margin-bottom: 0.75rem;
+  }
+
+  /* 토글 버튼 모바일에서만 표시 */
+  #btn-toggle-guide {
+    display: block !important;
   }
 }
 

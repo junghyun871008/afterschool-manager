@@ -949,6 +949,7 @@
         <!-- 🔌 미연결 상태 (최초 설정) -->
         <div id="cloud-view-setup">
           <div class="cloud-sync-status-row" id="cloud-status-row" style="display:none;margin-bottom:1rem;padding:0.6rem 0.9rem;border-radius:8px;font-size:0.82rem;font-weight:600;"></div>
+          <button id="btn-toggle-guide" onclick="const g=document.getElementById('cloud-setup-guide');g.classList.toggle('expanded');this.textContent=g.classList.contains('expanded')?'▲ 설정 방법 닫기':'▼ Firebase 설정 방법 보기';" style="display:none;width:100%;margin-bottom:0.75rem;padding:0.5rem;background:rgba(37,99,235,0.07);border:1px solid rgba(37,99,235,0.2);border-radius:8px;color:#2563eb;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:var(--font-primary)">▼ Firebase 설정 방법 보기</button>
           <div class="cloud-guide-box" id="cloud-setup-guide">
             <div class="cloud-guide-title">📌 Firebase 무료 설정 방법 (5분, 최초 1회)</div>
             <ol class="cloud-guide-steps">
