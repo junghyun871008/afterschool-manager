@@ -979,66 +979,69 @@ function createCalendarCell(dayNum, isOtherMonth) {
   else if (weekday === 4) regularSchool = '삼성초';
   else if (weekday === 5) regularSchool = '연서초';
 
+  const isMobile = window.innerWidth <= 768;
+  const schoolColors = { '증산초': '#2563eb', '신도초': '#059669', '삼성초': '#d97706', '연서초': '#db2777' };
+  const schoolShort = { '증산초': '증산', '신도초': '신도', '삼성초': '삼성', '연서초': '연서' };
+
   if (regularSchool) {
     const schoolLabel = document.createElement('span');
     schoolLabel.className = 'cell-school-label';
-    schoolLabel.style.fontSize = '1.2rem';
+    schoolLabel.style.fontSize = isMobile ? '0.75rem' : '1.1rem';
     schoolLabel.style.fontWeight = '800';
     schoolLabel.style.marginTop = '2px';
-    schoolLabel.style.color = weekday === 1 ? '#3b82f6' : (weekday === 2 ? '#10b981' : (weekday === 4 ? '#f59e0b' : '#ec4899'));
-    schoolLabel.textContent = regularSchool;
+    schoolLabel.style.color = schoolColors[regularSchool] || '#334155';
+    schoolLabel.style.display = 'block';
+    schoolLabel.style.lineHeight = '1.1';
+    // 모바일: 2글자 축약 (증산, 신도, 삼성, 연서)
+    schoolLabel.textContent = isMobile ? (schoolShort[regularSchool] || regularSchool) : regularSchool;
     cell.appendChild(schoolLabel);
 
-    // Load custom scheduled kit badge for this day
     const scheduledKit = getScheduledKitForDate(regularSchool, dateStr);
     if (scheduledKit) {
       const kitBadge = document.createElement('div');
       kitBadge.className = 'cell-kit-badge';
-      const isMobile = window.innerWidth <= 768;
-      kitBadge.style.fontSize = isMobile ? '0.7rem' : '1.15rem';
-      kitBadge.style.background = 'rgba(124, 58, 237, 0.12)';
-      kitBadge.style.border = '1px solid rgba(124, 58, 237, 0.2)';
+      kitBadge.style.fontSize = isMobile ? '0.65rem' : '0.8rem';
+      kitBadge.style.background = 'rgba(124,58,237,0.1)';
+      kitBadge.style.border = '1px solid rgba(124,58,237,0.2)';
       kitBadge.style.color = '#7c3aed';
-      kitBadge.style.borderRadius = '4px';
-      kitBadge.style.padding = isMobile ? '2px 3px' : '4px 6px';
-      kitBadge.style.marginTop = isMobile ? '2px' : '4px';
+      kitBadge.style.borderRadius = '3px';
+      kitBadge.style.padding = isMobile ? '1px 3px' : '2px 5px';
+      kitBadge.style.marginTop = '2px';
       kitBadge.style.maxWidth = '100%';
       kitBadge.style.overflow = 'hidden';
       kitBadge.style.textOverflow = 'ellipsis';
       kitBadge.style.whiteSpace = 'nowrap';
-      kitBadge.style.lineHeight = '1.2';
       kitBadge.style.fontWeight = '700';
-      // 모바일: "13차" 축약, PC: "13차: 앵무새글라이더"
-      kitBadge.textContent = isMobile
-        ? `${scheduledKit.session}차`
-        : `${scheduledKit.session}차: ${scheduledKit.name}`;
+      kitBadge.style.display = 'block';
+      // 모바일: 숫자만 "13", PC: "13차: 교구명"
+      kitBadge.textContent = isMobile ? `${scheduledKit.session}차` : `${scheduledKit.session}차: ${scheduledKit.name}`;
       kitBadge.title = `${scheduledKit.session}차시: ${scheduledKit.name} (${scheduledKit.topic})`;
       cell.appendChild(kitBadge);
     }
   }
 
-  // Lookup schedules
   const events = state.schedules.filter(ev => ev.date === dateStr);
   if (events.length > 0) {
     const dotContainer = document.createElement('div');
     dotContainer.className = 'day-events-dots';
-    
     events.forEach(ev => {
       const dot = document.createElement('span');
-      dot.className = `event-dot-indicator`;
+      dot.className = 'event-dot-indicator';
       if (ev.type === 'vacation') dot.style.backgroundColor = 'var(--color-vacation)';
       else if (ev.type === 'school-vacation') dot.style.backgroundColor = 'var(--color-school-vacation)';
       else if (ev.type === 'openclass') dot.style.backgroundColor = 'var(--color-openclass)';
       dotContainer.appendChild(dot);
-      
-      cell.title = (cell.title ? cell.title + ', ' : '') + `[${ev.school}] ${ev.memo}`;
     });
-    
     cell.appendChild(dotContainer);
   }
 
+  // 클릭: 상세 팝업 (모바일) / 일정 등록 모달 (PC)
   cell.addEventListener('click', () => {
-    openScheduleModal(dateStr, regularSchool);
+    if (isMobile) {
+      openDayDetailPopup(dateStr, regularSchool);
+    } else {
+      openScheduleModal(dateStr, regularSchool);
+    }
   });
 
   return cell;
@@ -1123,6 +1126,64 @@ function deleteSchedule(id) {
   saveState();
   renderCalendar();
   renderDashboard();
+}
+
+// 모바일 달력 셀 클릭 → 상세 팝업
+function openDayDetailPopup(dateStr, school) {
+  const d = new Date(dateStr);
+  const dayNames = ['일','월','화','수','목','금','토'];
+  const dateLabel = `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 (${dayNames[d.getDay()]})`;
+
+  const kit = school ? getScheduledKitForDate(school, dateStr) : null;
+  const events = state.schedules.filter(ev => ev.date === dateStr);
+
+  const typeLabel = { vacation: '방과후 휴강', 'school-vacation': '학교 휴강', openclass: '★ 학부모 공개수업' };
+  const typeColor = { vacation: '#d97706', 'school-vacation': '#dc2626', openclass: '#7c3aed' };
+
+  let content = `<div class="day-popup-date">${dateLabel}</div>`;
+  if (school) content += `<div class="day-popup-school" style="color:${({'증산초':'#2563eb','신도초':'#059669','삼성초':'#d97706','연서초':'#db2777'}[school]||'#334155')}">${school}등학교</div>`;
+
+  if (events.length > 0) {
+    events.forEach(ev => {
+      content += `<div class="day-popup-event" style="border-color:${typeColor[ev.type]||'#94a3b8'};color:${typeColor[ev.type]||'#334155'}">${typeLabel[ev.type]||ev.type}: ${ev.memo||''}</div>`;
+    });
+  }
+
+  if (kit) {
+    content += `<div class="day-popup-kit">
+      <div class="day-popup-kit-session">${kit.session}차시 교구</div>
+      <div class="day-popup-kit-name">${kit.name}</div>
+      <div class="day-popup-kit-topic">${kit.topic}</div>
+      <div class="day-popup-kit-content">${kit.content}</div>
+    </div>`;
+  } else if (school) {
+    content += `<div class="day-popup-empty">배정된 교구 없음 (휴강 또는 미지정)</div>`;
+  }
+
+  content += `<div class="day-popup-actions">
+    <button class="btn-secondary day-popup-close" onclick="document.getElementById('day-detail-popup').remove()">닫기</button>
+    <button class="btn-primary" style="font-size:0.8rem;padding:0.45rem 0.85rem;" onclick="document.getElementById('day-detail-popup').remove();openScheduleModal('${dateStr}','${school||'증산초'}')">+ 일정 등록</button>
+  </div>`;
+
+  // 기존 팝업 제거 후 새로 표시
+  const existing = document.getElementById('day-detail-popup');
+  if (existing) existing.remove();
+
+  const popup = document.createElement('div');
+  popup.id = 'day-detail-popup';
+  popup.className = 'day-detail-popup';
+  popup.innerHTML = content;
+  document.body.appendChild(popup);
+
+  // 외부 클릭 시 닫기
+  setTimeout(() => {
+    document.addEventListener('click', function closePopup(e) {
+      if (!popup.contains(e.target)) {
+        popup.remove();
+        document.removeEventListener('click', closePopup);
+      }
+    });
+  }, 100);
 }
 
 function openScheduleModal(dateStr, school) {

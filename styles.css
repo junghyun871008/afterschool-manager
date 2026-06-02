@@ -1920,48 +1920,74 @@ body {
     justify-content: center;
   }
 
-  /* 달력 — 모바일 가독성 개선 */
+  /* 달력 — 모바일 가로 스크롤 */
+
+  /* 카드를 뷰포트 너비에 고정 — 이래야 내부가 스크롤 됨 */
+  .calendar-card {
+    overflow: hidden;
+    max-width: 100%;
+  }
+
+  .calendar-scroll-wrapper {
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    /* 오른쪽 스크롤 힌트 그림자 */
+    -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+    mask-image: linear-gradient(to right, black 85%, transparent 100%);
+  }
+
+  .calendar-weekdays {
+    min-width: 490px;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  .calendar-days {
+    min-width: 490px;
+    gap: 4px;
+  }
+
   .day-cell {
     aspect-ratio: unset;
-    height: 80px;
+    min-width: 64px;
+    height: 76px;
     overflow: hidden;
-    padding: 0.3rem 0.2rem;
+    padding: 0.25rem 0.2rem;
   }
 
   .day-number {
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 700;
     color: #334155;
   }
 
   .cell-school-label {
-    font-size: 0.78rem !important;
+    font-size: 0.72rem !important;
     font-weight: 800 !important;
     white-space: nowrap !important;
     overflow: hidden !important;
-    text-overflow: ellipsis !important;
+    text-overflow: clip !important;
     max-width: 100% !important;
-    margin-top: 1px !important;
+    margin-top: 2px !important;
+    line-height: 1.1 !important;
   }
 
   .cell-kit-badge {
-    font-size: 0.68rem !important;
+    font-size: 0.66rem !important;
     padding: 1px 3px !important;
     line-height: 1.2 !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     max-width: 100% !important;
+    margin-top: 2px !important;
   }
 
   .event-dot-indicator {
-    height: 8px;
-    width: 8px;
-  }
-
-  .calendar-weekdays {
-    font-size: 0.85rem;
-    font-weight: 700;
+    height: 7px;
+    width: 7px;
   }
 
   .day-events-dots {
@@ -2699,6 +2725,112 @@ body {
   font-size: 0.76rem;
   color: #94a3b8;
   line-height: 1.4;
+}
+
+/* ==========================================================================
+   달력 셀 클릭 — 상세 팝업 (모바일)
+   ========================================================================== */
+
+.day-detail-popup {
+  position: fixed;
+  bottom: 72px; /* 바텀 네비 위 */
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 2rem);
+  max-width: 380px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 -4px 30px rgba(0,0,0,0.15), 0 8px 30px rgba(0,0,0,0.1);
+  padding: 1.1rem 1.25rem;
+  z-index: 9998;
+  animation: slideUpPopup 0.2s ease;
+}
+
+@keyframes slideUpPopup {
+  from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+  to   { transform: translateX(-50%) translateY(0);    opacity: 1; }
+}
+
+.day-popup-date {
+  font-size: 0.82rem;
+  color: #64748b;
+  margin-bottom: 0.15rem;
+}
+
+.day-popup-school {
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.day-popup-event {
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.4rem 0.75rem;
+  border-left: 3px solid;
+  border-radius: 0 6px 6px 0;
+  background: rgba(0,0,0,0.02);
+  margin-bottom: 0.5rem;
+}
+
+.day-popup-kit {
+  background: rgba(124,58,237,0.05);
+  border: 1px solid rgba(124,58,237,0.15);
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.day-popup-kit-session {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #7c3aed;
+  margin-bottom: 0.2rem;
+}
+
+.day-popup-kit-name {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 0.2rem;
+}
+
+.day-popup-kit-topic {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 0.15rem;
+}
+
+.day-popup-kit-content {
+  font-size: 0.75rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.day-popup-empty {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  padding: 0.5rem 0;
+  margin-bottom: 0.5rem;
+}
+
+.day-popup-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.day-popup-close {
+  flex: 1;
+  font-size: 0.8rem;
+  padding: 0.45rem;
+  justify-content: center;
 }
 
 /* 구글 캘린더 가져오기 박스 */
