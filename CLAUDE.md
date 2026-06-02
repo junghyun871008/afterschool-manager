@@ -107,5 +107,9 @@ modalEl.classList.remove('active') // 닫기
 
 ---
 
+## Firebase 클라우드 동기화
+실제 URL과 동기화 키는 **MY_CONFIG.md** 파일에 저장됨 (gitignore로 GitHub에 올라가지 않음).  
+앱에서: ☁️ 버튼 → URL + 키 입력 → 연결하기 (기기당 1회)
+
 ## 연간 계획서 참고
 Google Sheets: https://docs.google.com/spreadsheets/d/12MwGFOdlT86ewpOsuNnx2slJZRJGQEEzRuotrestpv8/edit?gid=1063684995#gid=1063684995

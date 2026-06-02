@@ -5,3 +5,4 @@ Thumbs.db
 .gemini/
 *.json.bak
 afterschool_backup_*.json
+MY_CONFIG.md
