@@ -112,10 +112,13 @@ const defaultSchedules = [
   { id: 'sc-h13', date: '2027-02-08', school: '증산초', type: 'school-vacation', memo: '설날 연휴 휴강' },
   { id: 'sc-h14', date: '2027-02-09', school: '신도초', type: 'school-vacation', memo: '설날 대체공휴일 휴강' },
 
-  // 기존 기본 학사 일정
+  // 기본 학사 일정 (시트 연동 확인 2026-06-03)
   { id: 'sc-1', date: '2026-06-08', school: '증산초', type: 'school-vacation', memo: '증산초 재량휴업일 휴강' },
-  { id: 'sc-2', date: '2026-06-16', school: '신도초', type: 'openclass', memo: '학부모 공개 수업 (15:00~)' },
-  { id: 'sc-3', date: '2026-06-25', school: '삼성초', type: 'school-vacation', memo: '삼성초 개교기념일 휴강' }
+  { id: 'sc-2', date: '2026-06-16', school: '신도초', type: 'openclass', memo: '학부모 공개수업 (신도초)' },
+  { id: 'sc-3', date: '2026-06-25', school: '삼성초', type: 'school-vacation', memo: '삼성초 개교기념일 휴강' },
+  // 시트에서 확인한 공개수업 (2026-06-03 추가)
+  { id: 'sc-oc1', date: '2026-06-11', school: '삼성초', type: 'openclass', memo: '학부모 공개수업 (삼성초)' },
+  { id: 'sc-oc2', date: '2026-06-15', school: '증산초', type: 'openclass', memo: '학부모 공개수업 (증산초)' }
 ];
 
 // --- Global Variables ---
