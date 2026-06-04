@@ -1152,7 +1152,7 @@ function renderScheduleList() {
   
   const rangeEvents = state.schedules.filter(ev => {
     const evPrefix = ev.date.substring(0, 7);
-    return monthsToCheck.includes(evPrefix);
+    return monthsToCheck.includes(evPrefix) && ev.type !== 'national-holiday';
   });
   
   if (rangeEvents.length === 0) {
@@ -1184,12 +1184,13 @@ function renderScheduleList() {
       badgeClass = 'item-badge-other';
     }
 
+    const schoolLabel = ev.school ? `${ev.school}등학교` : '공통';
     const d = new Date(ev.date);
     const dateFormatted = `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 (${weekDaysKorean[d.getDay()]})`;
 
     item.innerHTML = `
       <div class="item-school-day">
-        <span class="item-school-name">${ev.school}등학교</span>
+        <span class="item-school-name">${schoolLabel}</span>
         <span class="item-badge ${badgeClass}">${typeName}</span>
       </div>
       <div class="item-date">${dateFormatted}</div>
@@ -1907,10 +1908,9 @@ function classifyScheduleEvent(text, notes) {
   if (t.includes('공개수업')) return 'openclass';
   if (t.includes('방학') || t.includes('휴강')) return 'vacation';
   if (t.includes('재량휴업') || t.includes('개교기념') || t.includes('공휴일') || t.includes('대체공휴일')) return 'school-vacation';
-  // 학교명이 있고 정규수업(차시)이 아닌 항목 → 기타
+  // 학교명이 있으면 모두 기타로 분류
   const hasSchool = ['증산초','신도초','삼성초','연서초'].some(s => text.includes(s));
-  const isRegularClass = /\d+차/.test(text); // "13차", "14차시" 등 정규수업 패턴
-  if (hasSchool && !isRegularClass) return 'other';
+  if (hasSchool) return 'other';
   return null;
 }
 
