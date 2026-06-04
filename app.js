@@ -1113,6 +1113,7 @@ function createCalendarCell(dayNum, isOtherMonth) {
       if (ev.type === 'vacation') dot.style.backgroundColor = 'var(--color-vacation)';
       else if (ev.type === 'school-vacation') dot.style.backgroundColor = 'var(--color-school-vacation)';
       else if (ev.type === 'openclass') dot.style.backgroundColor = 'var(--color-openclass)';
+      else if (ev.type === 'other') dot.style.backgroundColor = 'var(--color-other)';
       dotContainer.appendChild(dot);
     });
     cell.appendChild(dotContainer);
@@ -1178,6 +1179,9 @@ function renderScheduleList() {
     } else if (ev.type === 'openclass') {
       typeName = '공개수업';
       badgeClass = 'item-badge-openclass';
+    } else if (ev.type === 'other') {
+      typeName = '기타';
+      badgeClass = 'item-badge-other';
     }
 
     const d = new Date(ev.date);
@@ -1220,8 +1224,8 @@ function openDayDetailPopup(dateStr, school) {
   const kit = school ? getScheduledKitForDate(school, dateStr) : null;
   const events = state.schedules.filter(ev => ev.date === dateStr);
 
-  const typeLabel = { vacation: '방과후 휴강', 'school-vacation': '학교 휴강', openclass: '★ 학부모 공개수업' };
-  const typeColor = { vacation: '#d97706', 'school-vacation': '#dc2626', openclass: '#7c3aed' };
+  const typeLabel = { vacation: '방과후 휴강', 'school-vacation': '학교 휴강', openclass: '★ 학부모 공개수업', other: '기타' };
+  const typeColor = { vacation: '#d97706', 'school-vacation': '#dc2626', openclass: '#7c3aed', other: '#0891b2' };
 
   let content = `<div class="day-popup-date">${dateLabel}</div>`;
   if (school) content += `<div class="day-popup-school" style="color:${({'증산초':'#2563eb','신도초':'#059669','삼성초':'#d97706','연서초':'#db2777'}[school]||'#334155')}">${school}등학교</div>`;
@@ -1903,6 +1907,10 @@ function classifyScheduleEvent(text, notes) {
   if (t.includes('공개수업')) return 'openclass';
   if (t.includes('방학') || t.includes('휴강')) return 'vacation';
   if (t.includes('재량휴업') || t.includes('개교기념') || t.includes('공휴일') || t.includes('대체공휴일')) return 'school-vacation';
+  // 학교명이 있고 정규수업(차시)이 아닌 항목 → 기타
+  const hasSchool = ['증산초','신도초','삼성초','연서초'].some(s => text.includes(s));
+  const isRegularClass = /\d+차/.test(text); // "13차", "14차시" 등 정규수업 패턴
+  if (hasSchool && !isRegularClass) return 'other';
   return null;
 }
 

@@ -37,6 +37,7 @@
   --color-vacation: #d97706;
   --color-school-vacation: #dc2626;
   --color-openclass: #7c3aed;
+  --color-other: #0891b2;
 
   /* Shadows & Blur */
   --shadow-glass: 0 1px 12px 0 rgba(0, 0, 0, 0.08);
@@ -812,6 +813,7 @@ body {
 .bg-vacation { background-color: var(--color-vacation); }
 .bg-school-vacation { background-color: var(--color-school-vacation); }
 .bg-openclass { background-color: var(--color-openclass); }
+.bg-other { background-color: var(--color-other); }
 
 .calendar-weekdays {
   display: grid;
@@ -975,6 +977,7 @@ body {
 .schedule-list-item.type-vacation::before { background-color: var(--color-vacation); }
 .schedule-list-item.type-school-vacation::before { background-color: var(--color-school-vacation); }
 .schedule-list-item.type-openclass::before { background-color: var(--color-openclass); }
+.schedule-list-item.type-other::before { background-color: var(--color-other); }
 
 .item-school-day {
   display: flex;
