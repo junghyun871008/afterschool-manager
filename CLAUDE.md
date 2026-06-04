@@ -37,7 +37,7 @@
 
 ## 주요 기능
 1. **대시보드** — 이번 주 4개 학교 수업 현황 카드, 준비 체크, 메모, 결석 관리
-2. **학사 일정 관리** — 월별 달력, 공휴일·공개수업·방학 등록, .ics 파일 가져오기
+2. **학사 일정 관리** — 월별 달력, 공휴일·공개수업·방학·기타 등록, 시트 동기화
 3. **교구 스케줄러** — 학교별 월간 교구 배치 (1~5주차 슬롯), 48차시 마스터 목록
 4. **교구 보관고** — 남은 교구 수량 관리, 보관 사유 기록
 
@@ -49,7 +49,9 @@
 - 📤 내보내기: `afterschool_backup_YYYYMMDD.json` 다운로드
 - 📥 불러오기: 다른 기기에서 저장한 JSON 파일 선택 → 전체 덮어쓰기
 
-완전 자동 동기화가 필요하면 **Firebase Realtime Database** 연동 가능 (미구현).
+완전 자동 동기화가 필요하면 **Firebase Realtime Database** 연동 가능.  
+실제 URL과 동기화 키는 **MY_CONFIG.md** 파일에 저장됨 (gitignore로 GitHub에 올라가지 않음).  
+앱에서: ☁️ 버튼 → URL + 키 입력 → 연결하기 (기기당 1회)
 
 ---
 
@@ -66,6 +68,12 @@ npx serve -l 3000 .
 push.bat    ← 변경사항 자동 커밋 + 푸시
 pull.bat    ← 최신 버전 가져오기
 ```
+
+### 문법 검사 (배포 전 필수)
+```
+node --check app.js
+```
+syntax error가 있으면 GitHub Pages에서 앱 전체가 로딩 실패한다.
 
 ---
 
@@ -100,16 +108,167 @@ modalEl.classList.remove('active') // 닫기
 
 ---
 
+## ⚠️ 치명적 버그 패턴 (반드시 숙지)
+
+### 1. HTML 요소 제거 시 JS null guard 필수
+HTML에서 element를 제거하면 JS에서도 반드시 null 체크해야 한다.  
+`null.addEventListener()` 는 TypeError → DOMContentLoaded 전체가 멈춤 → 앱 로딩 실패.
+
+```js
+// ❌ 위험: HTML에서 해당 element가 없으면 앱 전체 죽음
+document.getElementById('btn-xyz').addEventListener('click', handler);
+
+// ✅ 올바른 패턴
+const el = document.getElementById('btn-xyz');
+if (el) el.addEventListener('click', handler);
+```
+
+### 2. let 선언 순서 (TDZ 버그)
+`let` 변수는 선언 전에 사용할 수 없다 (Temporal Dead Zone).  
+재고가 비어있으면 앱 전체 상태가 리셋되는 버그였음.
+
+```js
+// ❌ 버그: mergedAny 사용이 let 선언보다 먼저
+if (someCondition) {
+  mergedAny = true;  // ReferenceError!
+}
+let mergedAny = false;
+
+// ✅ 수정: let 선언을 먼저
+let mergedAny = false;
+if (someCondition) {
+  mergedAny = true;
+}
+```
+
+### 3. 스케줄러 select 변경 이벤트
+`addEventListener('change', ...)` 만으로는 불안정할 수 있음.  
+HTML에 `onchange` 인라인을 함께 달아야 확실히 동작한다.
+
+```html
+<!-- ✅ 올바른 패턴: 인라인 onchange + addEventListener 이중 보장 -->
+<select id="sched-month-select" onchange="renderSchedulerSlots()">
+```
+
+---
+
+## 학사 일정 데이터 관리
+
+### 이벤트 타입
+| 타입 | 색상 | 용도 | 달력 표시 |
+|------|------|------|----------|
+| `national-holiday` | 날짜 빨간색 | 공휴일·기념일 (school: '') | 날짜숫자 빨간색 + 텍스트 |
+| `openclass` | 보라 (#7c3aed) | 학부모 공개수업 | ★ 배지 + 보라 배경 |
+| `school-vacation` | 빨간 점 (#dc2626) | 학교 재량휴업·공휴일 휴강 | 빨간 점 + 연빨간 배경 |
+| `vacation` | 주황 점 (#d97706) | 방과후 방학 | 주황 점 |
+| `other` | 청록 (#0891b2) | 기타 학교 관련 일정 | 텍스트 라벨 (짧게 truncate) |
+
+### 기타(other) 이벤트
+- 시트 동기화 시 학교명 포함 비수업 항목 자동 분류
+- 달력 셀에 점(dot) 대신 **텍스트 라벨**로 표시 (학교명 접두어 제거, PC 13자/모바일 7자)
+- 예: "증산초 하삼동커피" → "하삼동커피" 로 달력에 표시
+- CSS 클래스: `.cell-other-label`
+
+### 한국 공휴일 등록 방식
+`defaultSchedules` 배열 하단에 `national-holiday` 타입으로 등록.  
+`school: ''` (빈 문자열)로 설정해야 전체 달력에 표시됨.  
+로드 시 `loadState()`가 자동 병합. 이미 등록된 공휴일:
+- 삼일절(3/1), 어린이날(5/5), 부처님오신날(5/25)
+- 전국동시지방선거(6/3, 2026년), 현충일(6/6), 6·25 한국전쟁 기념일(6/25)
+- 광복절(8/15), 추석(9/25), 개천절(10/3), 한글날(10/9)
+- 크리스마스(12/25), 신정(1/1)
+
+### 잘못된 이벤트 차단 패턴 (중요)
+Google Sheets 자동 동기화(`syncSchedulesFromSheet`)가 잘못된 데이터를 재추가할 수 있음.  
+**반드시 두 곳 모두 수정해야 함:**
+
+1. **`loadState()` 내 `removeByDateSchool` 배열** — 앱 시작 시 localStorage에서 제거  
+2. **`syncSchedulesFromSheet()` 내 `syncBlocklist` 배열** — 시트 재동기화 시 차단
+
+```js
+// 올바른 패턴: type 불문, date+school 조합으로만 차단
+{ date: '2026-XX-XX', school: '학교명' }
+// 잘못된 패턴: type까지 포함하면 다른 type으로 들어올 때 차단 안 됨
+{ date: '2026-XX-XX', school: '학교명', type: 'openclass' }  // ❌
+```
+
+### 공개수업 확정 일정 (2026년)
+- 6/15 증산초, 6/18 삼성초, 10/20 신도초 (연서초 미정)
+
+---
+
+## Google Sheets 연동
+
+### 나의 디지털 트윈 시트 (학사일정 동기화 소스)
+- **Sheet ID**: `1hEawF0B3Gz7ZYiQbqh4FnKJc5c-FZNMkz5pQWUOBq3w`
+- URL: https://docs.google.com/spreadsheets/d/1hEawF0B3Gz7ZYiQbqh4FnKJc5c-FZNMkz5pQWUOBq3w
+- 용도: 강사의 일상 활동 기록 → 학교명 포함 항목을 학사일정 달력에 자동 연동
+- 범위: 6000~7500행 (3개 범위 분할 fetch)
+
+### 이벤트 분류 로직 (`classifyScheduleEvent`)
+```js
+'공개수업' → openclass
+'방학' or '휴강' → vacation
+'재량휴업' or '개교기념' or '공휴일' or '대체공휴일' → school-vacation
+학교명(증산초/신도초/삼성초/연서초) 포함 → other (기타)
+그 외 → null (달력에 추가 안 함)
+```
+
+### 연간 계획서 시트 (교구 참고)
+- URL: https://docs.google.com/spreadsheets/d/12MwGFOdlT86ewpOsuNnx2slJZRJGQEEzRuotrestpv8
+
+### 대시보드 인원 현황 시트
+- `SHEET_ID` = `1JutjMvwsc9O8Db6kilySSsFGBd5HB-j0xYsJHCk3vAA`
+- `DASHBOARD_GID` = `1344548639`
+
+---
+
+## 달력 UI 패턴
+
+### 가로 스크롤 구조
+```html
+<div class="calendar-card">
+  <div class="calendar-scroll-wrapper">  <!-- overflow-x: auto -->
+    <div class="calendar-weekdays">...</div>  <!-- min-width: 490px(모바일)/560px(PC) -->
+    <div class="calendar-days">...</div>
+  </div>
+</div>
+```
+- `.calendar-card`: `min-width: 0` 필수 (grid 팽창 방지)
+- 모바일 `min-width: 490px`, PC `min-width: 560px` (CSS specificity로 분기)
+
+### 달력 셀 클릭 동작
+PC와 모바일 모두 동일: 클릭 → **상세 팝업** 먼저 표시  
+팝업 내 "일정 등록" 버튼으로 등록 모달 진입  
+(기존: PC는 바로 등록 모달 → 내용 확인 불가 문제)
+
+```js
+cell.addEventListener('click', () => {
+  openDayDetailPopup(dateStr, regularSchool); // PC/모바일 공통
+});
+```
+
+---
+
+## 교구 스케줄러 (2026년 6월 배치 기준)
+
+### 현재 배치 (복원 완료)
+| 주차 | 증산초(월)/신도초(화) | 삼성초(목)/연서초(금) |
+|------|---------------------|---------------------|
+| 1주차 | 11차: 유니콘드론 | 16차: 다빈치와투석기 |
+| 2주차 | 16차: 다빈치와투석기 | 13차: 앵무새글라이더(전동) |
+| 3주차 | 13차: 앵무새글라이더(전동) | 14차: 잠수함비행기(슈팅) |
+| 4주차 | 14차: 잠수함비행기(슈팅) | 16차(연서초) / 휴강(삼성초, 6.25) |
+| 5주차 | 미정 | 미정 |
+
+### 스케줄러 월 선택 버그 방지
+`renderScheduler()` 진입 시 현재 월을 자동 선택.  
+select 요소에 반드시 `onchange="renderSchedulerSlots()"` 인라인 추가.
+
+---
+
 ## 알려진 이슈 / TODO
 - [ ] Firebase 연동으로 자동 크로스기기 동기화 (선택사항)
 - [ ] 연간계획서 Google Sheets와 교구 데이터 연동 검토
 - [ ] 브리핑 섹션의 주차 계산: 현재 `Math.ceil(date/7)` 방식 (대략적)
-
----
-
-## Firebase 클라우드 동기화
-실제 URL과 동기화 키는 **MY_CONFIG.md** 파일에 저장됨 (gitignore로 GitHub에 올라가지 않음).  
-앱에서: ☁️ 버튼 → URL + 키 입력 → 연결하기 (기기당 1회)
-
-## 연간 계획서 참고
-Google Sheets: https://docs.google.com/spreadsheets/d/12MwGFOdlT86ewpOsuNnx2slJZRJGQEEzRuotrestpv8/edit?gid=1063684995#gid=1063684995
+- [ ] 기타(other) 이벤트가 너무 많으면 달력이 복잡해질 수 있음 → 필터 조건 조정 가능
