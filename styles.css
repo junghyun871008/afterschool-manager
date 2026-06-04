@@ -734,6 +734,18 @@ body {
   border-radius: var(--radius-lg);
   padding: 2rem;
   box-shadow: var(--shadow-glass);
+  min-width: 0; /* grid 아이템이 콘텐츠 크기로 팽창하는 것 방지 */
+}
+
+/* 달력 가로 스크롤 래퍼 — PC·모바일 공통 */
+.calendar-scroll-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.calendar-scroll-wrapper .calendar-weekdays,
+.calendar-scroll-wrapper .calendar-days {
+  min-width: 560px;
 }
 
 .calendar-header {
@@ -1922,29 +1934,19 @@ body {
 
   /* 달력 — 모바일 가로 스크롤 */
 
-  /* 카드를 뷰포트 너비에 고정 — 이래야 내부가 스크롤 됨 */
   .calendar-card {
     overflow: hidden;
     max-width: 100%;
   }
 
-  .calendar-scroll-wrapper {
-    overflow-x: auto;
-    overflow-y: visible;
-    -webkit-overflow-scrolling: touch;
-    width: 100%;
-    /* 오른쪽 스크롤 힌트 그림자 */
-    -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
-    mask-image: linear-gradient(to right, black 85%, transparent 100%);
-  }
-
-  .calendar-weekdays {
+  /* 전역 560px보다 specificity를 높여 모바일에서는 490px로 덮어씀 */
+  .calendar-scroll-wrapper .calendar-weekdays {
     min-width: 490px;
     font-size: 0.82rem;
     font-weight: 700;
   }
 
-  .calendar-days {
+  .calendar-scroll-wrapper .calendar-days {
     min-width: 490px;
     gap: 4px;
   }
