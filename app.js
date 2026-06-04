@@ -209,6 +209,9 @@ function loadState() {
       state.inventory = parsed.inventory || []; // Start empty or load saved inventory
       state.schoolMonthlyPlans = parsed.schoolMonthlyPlans || {};
 
+      // mergedAny 선언을 먼저 (TDZ 버그 수정)
+      let mergedAny = false;
+
       // Recovery for local data
       if (!state.inventory || state.inventory.length === 0) {
         state.inventory = [
@@ -226,7 +229,6 @@ function loadState() {
       }
 
       // Merge new public holiday schedules (sc-h prefixed) into existing user schedule state without duplicate dates for same school
-      let mergedAny = false;
       defaultSchedules.forEach(defaultEv => {
         const exists = state.schedules.some(s => s.date === defaultEv.date && s.school === defaultEv.school);
         if (!exists) {
@@ -1387,8 +1389,9 @@ function setupCalendarEventListeners() {
     renderDashboard();
   });
 
-  // Google Calendar .ics Importer Logic
-  document.getElementById('ics-file-input').addEventListener('change', (e) => {
+  // Google Calendar .ics Importer Logic (element removed from HTML - guarded null check)
+  const icsInput = document.getElementById('ics-file-input');
+  if (icsInput) { icsInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -1473,7 +1476,7 @@ function setupCalendarEventListeners() {
     };
     reader.readAsText(file);
     e.target.value = '';
-  });
+  }); } // end icsInput guard
 }
 
 // --- Inventory Manager ---
