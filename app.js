@@ -112,24 +112,32 @@ const defaultSchedules = [
   { id: 'sc-h13', date: '2027-02-08', school: '증산초', type: 'school-vacation', memo: '설날 연휴 휴강' },
   { id: 'sc-h14', date: '2027-02-09', school: '신도초', type: 'school-vacation', memo: '설날 대체공휴일 휴강' },
 
-  // 기본 학사 일정 (나의 디지털 트윈 시트 연동 — 2026-06-03 확인)
-
-  // 3월 — 개교기념일
+  // ── 개교기념일 ──────────────────────────────────────────
   { id: 'sc-an1', date: '2026-03-24', school: '신도초', type: 'school-vacation', memo: '신도초 개교기념일 휴강' },
   { id: 'sc-an2', date: '2026-03-27', school: '연서초', type: 'school-vacation', memo: '연서초 개교기념일 휴강' },
 
-  // 6월 — 재량휴업 & 공개수업 & 개교기념일
-  { id: 'sc-1',   date: '2026-06-08', school: '증산초', type: 'school-vacation', memo: '증산초 재량휴업일 휴강' },
-  { id: 'sc-oc1', date: '2026-06-11', school: '삼성초', type: 'openclass',       memo: '학부모 공개수업 (삼성초)' },
-  { id: 'sc-oc2', date: '2026-06-15', school: '증산초', type: 'openclass',       memo: '학부모 공개수업 (증산초)' },
-  { id: 'sc-3',   date: '2026-06-25', school: '삼성초', type: 'school-vacation', memo: '삼성초 개교기념일 휴강' },
+  // ── 공개수업 ─────────────────────────────────────────────
+  { id: 'sc-oc1', date: '2026-06-15', school: '증산초', type: 'openclass', memo: '학부모 공개수업 (증산초)' },
+  { id: 'sc-oc2', date: '2026-06-18', school: '삼성초', type: 'openclass', memo: '학부모 공개수업 (삼성초)' },
+  { id: 'sc-oc3', date: '2026-10-20', school: '신도초', type: 'openclass', memo: '학부모 공개수업 (신도초)' },
 
-  // 7월 — 여름방학 (방과후 수업 방학)
+  // ── 방과후 여름방학 ───────────────────────────────────────
   { id: 'sc-sum1', date: '2026-07-21', school: '신도초', type: 'vacation', memo: '신도초 여름방학 — 방과후 수업 휴강' },
   { id: 'sc-sum2', date: '2026-07-27', school: '증산초', type: 'vacation', memo: '증산초 여름방학 — 방과후 수업 휴강' },
 
-  // 10월 — 신도초 공개수업 (겨울학기)
-  { id: 'sc-oc3', date: '2026-10-20', school: '신도초', type: 'openclass', memo: '학부모 공개수업 (신도초)' }
+  // ── 한국 공휴일 / 기념일 (달력 표시용) ─────────────────────
+  { id: 'nh-01', date: '2026-03-01', school: '', type: 'national-holiday', memo: '삼일절' },
+  { id: 'nh-02', date: '2026-05-05', school: '', type: 'national-holiday', memo: '어린이날' },
+  { id: 'nh-03', date: '2026-05-25', school: '', type: 'national-holiday', memo: '부처님오신날' },
+  { id: 'nh-04', date: '2026-06-03', school: '', type: 'national-holiday', memo: '전국동시지방선거 (공휴일)' },
+  { id: 'nh-05', date: '2026-06-06', school: '', type: 'national-holiday', memo: '현충일' },
+  { id: 'nh-06', date: '2026-06-25', school: '', type: 'national-holiday', memo: '6·25 한국전쟁 기념일' },
+  { id: 'nh-07', date: '2026-08-15', school: '', type: 'national-holiday', memo: '광복절' },
+  { id: 'nh-08', date: '2026-09-25', school: '', type: 'national-holiday', memo: '추석 연휴' },
+  { id: 'nh-09', date: '2026-10-03', school: '', type: 'national-holiday', memo: '개천절' },
+  { id: 'nh-10', date: '2026-10-09', school: '', type: 'national-holiday', memo: '한글날' },
+  { id: 'nh-11', date: '2026-12-25', school: '', type: 'national-holiday', memo: '크리스마스' },
+  { id: 'nh-12', date: '2027-01-01', school: '', type: 'national-holiday', memo: '신정' }
 ];
 
 // --- Global Variables ---
@@ -253,15 +261,27 @@ function loadState() {
         if (!state.schools[school].prepTodos) state.schools[school].prepTodos = [];
       }
 
-      // 데이터 정정: 잘못 기록된 이벤트 제거
-      const wrongDates = [
-        { date: '2026-06-16', school: '신도초', type: 'openclass' }, // 실제 공개수업은 10/20
-        { date: '2026-06-08', school: '삼성초', type: 'openclass' }, // 시트 동기화 오류 (실제는 6/11)
+      // 데이터 정정: 잘못된 이벤트 및 구버전 이벤트 모두 제거 (type 불문, date+school로 완전 제거)
+      const removeIds = ['sc-1','sc-2','sc-3','sc-oc1_old'];
+      const removeByDateSchool = [
+        { date: '2026-06-16', school: '신도초' },   // 신도초 공개수업 오기록 (실제: 10/20)
+        { date: '2026-06-11', school: '삼성초' },   // 삼성초 공개수업 잘못된 날짜 (실제: 6/18)
+        { date: '2026-06-08', school: '증산초' },   // 증산초 재량휴업일 오기록 (실제 없음)
+        { date: '2026-06-25', school: '삼성초' },   // 삼성초 개교기념일 오기록 (실제 없음)
+        { date: '2026-06-08', school: '삼성초' },   // 시트 동기화로 잘못 들어온 오류
       ];
-      wrongDates.forEach(w => {
-        const idx = state.schedules.findIndex(s => s.date === w.date && s.school === w.school && s.type === w.type);
-        if (idx !== -1) { state.schedules.splice(idx, 1); mergedAny = true; }
+      let removedAny = false;
+      // ID로 제거
+      state.schedules = state.schedules.filter(s => !removeIds.includes(s.id));
+      // date+school 조합 전체 제거 (vacation/school-vacation/openclass 구분 없이)
+      removeByDateSchool.forEach(w => {
+        const before = state.schedules.length;
+        state.schedules = state.schedules.filter(s =>
+          !(s.date === w.date && s.school === w.school)
+        );
+        if (state.schedules.length < before) removedAny = true;
       });
+      if (removedAny) mergedAny = true;
 
       if (mergedAny) {
         saveState();
@@ -1052,7 +1072,19 @@ function createCalendarCell(dayNum, isOtherMonth) {
     }
   }
 
-  const events = state.schedules.filter(ev => ev.date === dateStr);
+  // 국경일/기념일 표시 (school === '' → 모든 날짜 셀에 표시)
+  const holidays = state.schedules.filter(ev => ev.date === dateStr && ev.type === 'national-holiday');
+  if (holidays.length > 0) {
+    const hLabel = document.createElement('div');
+    hLabel.className = 'cell-holiday-label';
+    hLabel.textContent = holidays[0].memo;
+    hLabel.title = holidays[0].memo;
+    cell.appendChild(hLabel);
+    // 날짜 숫자 빨간색으로
+    numSpan.style.color = '#dc2626';
+  }
+
+  const events = state.schedules.filter(ev => ev.date === dateStr && ev.type !== 'national-holiday');
   if (events.length > 0) {
     const hasOpenClass = events.some(ev => ev.type === 'openclass');
     const hasVacation = events.some(ev => ev.type === 'vacation' || ev.type === 'school-vacation');
@@ -1924,6 +1956,16 @@ async function syncSchedulesFromSheet() {
         // 공개수업/방학의 경우 날짜 기반으로도 학교 유추
         if (!school) school = getSchoolByDate(dateStr);
         if (!school) continue;
+
+        // 절대 추가하면 안 되는 블랙리스트 (type 불문, date+school로 차단)
+        const syncBlocklist = [
+          { date: '2026-06-16', school: '신도초' },  // 신도초 공개수업 오기록
+          { date: '2026-06-08', school: '증산초' },  // 증산초 재량휴업일 오기록
+          { date: '2026-06-25', school: '삼성초' },  // 삼성초 개교기념일 오기록
+          { date: '2026-06-11', school: '삼성초' },  // 삼성초 공개수업 잘못된 날짜
+          { date: '2026-06-08', school: '삼성초' },  // 삼성초 시트 오류
+        ];
+        if (syncBlocklist.some(b => b.date === dateStr && b.school === school)) continue;
 
         // 학교와 날짜 요일이 맞는지 검증
         // (예: 삼성초 공개수업을 월요일에 기록했으면 스킵)
