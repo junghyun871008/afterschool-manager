@@ -255,6 +255,24 @@ function loadState() {
         mergedAny = true;
       }
 
+      // 복원: 2026년 6월 교구 계획 (초기화된 경우 이전 확인된 데이터로 복구)
+      // 확인 기준: 증산초 1주차가 11차(유니콘드론)여야 함. 아니면 초기화된 것.
+      const smp = state.schoolMonthlyPlans;
+      const jun = '2026-06';
+      const zsJun = smp['증산초'] && smp['증산초'][jun];
+      if (!zsJun || zsJun[0] !== 11) {
+        smp['증산초'] = smp['증산초'] || {};
+        smp['신도초'] = smp['신도초'] || {};
+        smp['삼성초'] = smp['삼성초'] || {};
+        smp['연서초'] = smp['연서초'] || {};
+        // 이전 PC화면에서 확인한 값: W1~W4, W5=0(미정)
+        smp['증산초'][jun] = [11, 16, 13, 14, 0]; // 드론→투석기→앵무새→잠수함
+        smp['신도초'][jun]  = [11, 16, 13, 14, 0];
+        smp['삼성초'][jun]  = [16, 13, 14,  0, 0]; // 6.25(W4) 휴강
+        smp['연서초'][jun]  = [16, 13, 14, 16, 0];
+        mergedAny = true;
+      }
+
       // To-Do 필드가 누락되어 있다면 안전 초기화
       for (const school of ['증산초', '신도초', '삼성초', '연서초']) {
         if (!state.schools[school].absentTodos) state.schools[school].absentTodos = [];
@@ -1119,13 +1137,9 @@ function createCalendarCell(dayNum, isOtherMonth) {
     cell.appendChild(dotContainer);
   }
 
-  // 클릭: 상세 팝업 (모바일) / 일정 등록 모달 (PC)
+  // 클릭: 상세 팝업 (모바일·PC 공통) → 팝업 안에 '일정 등록' 버튼
   cell.addEventListener('click', () => {
-    if (isMobile) {
-      openDayDetailPopup(dateStr, regularSchool);
-    } else {
-      openScheduleModal(dateStr, regularSchool);
-    }
+    openDayDetailPopup(dateStr, regularSchool);
   });
 
   return cell;
