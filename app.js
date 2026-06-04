@@ -1123,15 +1123,26 @@ function createCalendarCell(dayNum, isOtherMonth) {
       cell.style.borderColor = 'rgba(220,38,38,0.2)';
     }
 
+    // 기타 이벤트: 점 대신 텍스트 라벨 표시
+    events.filter(ev => ev.type === 'other' && ev.memo).forEach(ev => {
+      const otherLabel = document.createElement('div');
+      otherLabel.className = 'cell-other-label';
+      let txt = ev.memo;
+      ['증산초', '신도초', '삼성초', '연서초'].forEach(s => { txt = txt.replace(s, '').trim(); });
+      otherLabel.textContent = txt.substring(0, isMobile ? 7 : 13);
+      otherLabel.title = ev.memo;
+      cell.appendChild(otherLabel);
+    });
+
     const dotContainer = document.createElement('div');
     dotContainer.className = 'day-events-dots';
     events.forEach(ev => {
+      if (ev.type === 'other') return; // 기타는 텍스트 라벨로 표시
       const dot = document.createElement('span');
       dot.className = 'event-dot-indicator';
       if (ev.type === 'vacation') dot.style.backgroundColor = 'var(--color-vacation)';
       else if (ev.type === 'school-vacation') dot.style.backgroundColor = 'var(--color-school-vacation)';
       else if (ev.type === 'openclass') dot.style.backgroundColor = 'var(--color-openclass)';
-      else if (ev.type === 'other') dot.style.backgroundColor = 'var(--color-other)';
       dotContainer.appendChild(dot);
     });
     cell.appendChild(dotContainer);
@@ -1614,6 +1625,13 @@ function setupInventoryEventListeners() {
 
 // --- Scheduler & Master Kits (Step 3 5-Week Scheduler Slots & Auto-Archiving) ---
 function renderScheduler() {
+  // 현재 월을 month select에 자동 반영 (첫 진입 또는 초기화 시)
+  const monthSel = document.getElementById('sched-month-select');
+  if (monthSel) {
+    const todayYM = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+    const optionExists = Array.from(monthSel.options).some(o => o.value === todayYM);
+    if (optionExists) monthSel.value = todayYM;
+  }
   renderMasterKitsList();
   renderSchedulerSlots();
 }
