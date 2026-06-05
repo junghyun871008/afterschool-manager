@@ -82,7 +82,9 @@ let state = {
   // Inventory (leftover kits) - Empty by default
   inventory: [],
   // Customized school sequence: schoolMonthlyPlans[school][yearMonth] = [session, session, ...] (index = week - 1)
-  schoolMonthlyPlans: {}
+  schoolMonthlyPlans: {},
+  // 5th week memos: week5Memos[school][yearMonth] = memo string
+  week5Memos: {}
 };
 
 // --- Initial Academic Schedules ---
@@ -208,6 +210,7 @@ function loadState() {
       state.schedules = parsed.schedules || [];
       state.inventory = parsed.inventory || []; // Start empty or load saved inventory
       state.schoolMonthlyPlans = parsed.schoolMonthlyPlans || {};
+      state.week5Memos = parsed.week5Memos || {};
 
       // mergedAny 선언을 먼저 (TDZ 버그 수정)
       let mergedAny = false;
@@ -1765,10 +1768,14 @@ function renderSchedulerSlots() {
     currentPlan.push(0);
   }
 
+  if (!state.week5Memos[school]) state.week5Memos[school] = {};
+  const week5Memo = state.week5Memos[school][yearMonth] || '';
+
   for (let i = 0; i < 5; i++) {
     const slotCard = document.createElement('div');
     slotCard.className = 'scheduler-slot-card';
     slotCard.setAttribute('data-index', i);
+    if (i === 4) slotCard.style.flexWrap = 'wrap';
 
     const currentSession = currentPlan[i] || 0;
 
@@ -1808,18 +1815,25 @@ function renderSchedulerSlots() {
       }
     }
 
+    const memoRow = i === 4 ? `
+      <div style="width:100%; margin-top:0.5rem; display:flex; align-items:center; gap:0.5rem;">
+        <span style="font-size:0.78rem; color:var(--text-muted); white-space:nowrap; flex-shrink:0;">메모</span>
+        <textarea class="slot-week5-memo" rows="2" placeholder="퀴즈대회, 지난 교구, 자체 제작 교구 등 특이사항 기록" style="flex:1; resize:vertical; font-size:0.82rem; padding:0.4rem 0.6rem; border-radius:var(--radius-sm); border:1px solid var(--border-glass); background:rgba(0,0,0,0.2); color:var(--text-secondary); min-height:2.5rem;">${week5Memo}</textarea>
+      </div>
+    ` : '';
+
     slotCard.innerHTML = `
       <div class="slot-week-indicator">
         <span class="slot-week-num">${i + 1}주차</span>
         <span class="slot-date">${dateFormatted}</span>
       </div>
-      
+
       <div class="slot-dropdown-wrapper">
         <select class="slot-dropdown" data-index="${i}">
           ${dropdownOptions}
         </select>
       </div>
-      
+
       <div class="slot-controls" style="flex-direction: row; align-items: center; gap: 8px;">
         <button class="btn-slot-archive" data-index="${i}" title="이 차시 교구 보관고로 이체">보관</button>
         <div style="display: flex; flex-direction: column; gap: 2px;">
@@ -1827,12 +1841,21 @@ function renderSchedulerSlots() {
           <button class="btn-slot-move slot-move-down" data-index="${i}" title="아래로 순서 교환" ${i === 4 ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}>▼</button>
         </div>
       </div>
+      ${memoRow}
     `;
 
     slotCard.querySelector('.slot-dropdown').addEventListener('change', (e) => {
       const idx = parseInt(e.target.getAttribute('data-index'));
       currentPlan[idx] = parseInt(e.target.value);
     });
+
+    if (i === 4) {
+      slotCard.querySelector('.slot-week5-memo').addEventListener('input', (e) => {
+        if (!state.week5Memos[school]) state.week5Memos[school] = {};
+        state.week5Memos[school][yearMonth] = e.target.value;
+        saveState();
+      });
+    }
 
     if (i > 0) {
       slotCard.querySelector('.slot-move-up').addEventListener('click', () => {
@@ -2562,6 +2585,7 @@ function importData(file) {
       state.schedules = parsed.schedules || [];
       state.inventory = parsed.inventory || [];
       state.schoolMonthlyPlans = parsed.schoolMonthlyPlans || {};
+      state.week5Memos = parsed.week5Memos || {};
       saveState();
       renderDashboard();
       renderCalendar();
