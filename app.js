@@ -260,23 +260,26 @@ function loadState() {
         mergedAny = true;
       }
 
-      // 복원: 2026년 6월 교구 계획 (초기화된 경우 이전 확인된 데이터로 복구)
-      // 확인 기준: 증산초 1주차가 11차(유니콘드론)여야 함. 아니면 초기화된 것.
+      // 6월 교구 계획: 없는 학교만 기본값으로 설정 (저장된 데이터는 절대 덮어쓰지 않음)
       const smp = state.schoolMonthlyPlans;
       const jun = '2026-06';
-      const zsJun = smp['증산초'] && smp['증산초'][jun];
-      if (!zsJun || zsJun[0] !== 11) {
-        smp['증산초'] = smp['증산초'] || {};
-        smp['신도초'] = smp['신도초'] || {};
-        smp['삼성초'] = smp['삼성초'] || {};
-        smp['연서초'] = smp['연서초'] || {};
-        // 이전 PC화면에서 확인한 값: W1~W4, W5=0(미정)
-        smp['증산초'][jun] = [11, 16, 13, 14, 0]; // 드론→투석기→앵무새→잠수함
-        smp['신도초'][jun]  = [11, 16, 13, 14, 0];
-        smp['삼성초'][jun]  = [16, 13, 14,  0, 0]; // 6.25(W4) 휴강
-        smp['연서초'][jun]  = [16, 13, 14, 16, 0];
-        mergedAny = true;
-      }
+      ['증산초', '신도초', '삼성초', '연서초'].forEach(s => { smp[s] = smp[s] || {}; });
+      if (!smp['증산초'][jun]) { smp['증산초'][jun] = [11, 16, 13, 14, 0]; mergedAny = true; }
+      if (!smp['신도초'][jun])  { smp['신도초'][jun]  = [11, 16, 13, 14, 0]; mergedAny = true; }
+      if (!smp['삼성초'][jun])  { smp['삼성초'][jun]  = [16, 13, 14,  0, 0]; mergedAny = true; }
+      if (!smp['연서초'][jun])  { smp['연서초'][jun]  = [16, 13, 14, 16, 0]; mergedAny = true; }
+
+      // 3~5월 기본 플랜 초기화 (없는 학교/월만 채움 — 마스터 목록 사용 현황 반영용)
+      const earlyMonths = ['2026-03', '2026-04', '2026-05'];
+      earlyMonths.forEach(ym => {
+        ['증산초', '신도초', '삼성초', '연서초'].forEach(school => {
+          smp[school] = smp[school] || {};
+          if (!smp[school][ym]) {
+            smp[school][ym] = getStandardMonthlyPlan(ym);
+            mergedAny = true;
+          }
+        });
+      });
 
       // To-Do 필드가 누락되어 있다면 안전 초기화
       for (const school of ['증산초', '신도초', '삼성초', '연서초']) {
@@ -1847,6 +1850,8 @@ function renderSchedulerSlots() {
     slotCard.querySelector('.slot-dropdown').addEventListener('change', (e) => {
       const idx = parseInt(e.target.getAttribute('data-index'));
       currentPlan[idx] = parseInt(e.target.value);
+      saveState();
+      renderMasterKitsList();
     });
 
     if (i === 4) {
@@ -1949,9 +1954,10 @@ function setupSchedulerEventListeners() {
     saveState();
     
     alert(`[${school}] ${yearMonth} 스케줄러 배치가 정상 저장되었습니다.\n대시보드와 달력에 즉시 반영됩니다.`);
-    
+
     renderCalendar();
     renderDashboard();
+    renderMasterKitsList();
   });
 
   document.getElementById('btn-close-edit-kit-modal').addEventListener('click', () => {
