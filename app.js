@@ -72,10 +72,10 @@ let state = {
   masterKits: [],
   // Dashboard school states (Prepared & Override info)
   schools: {
-    '증산초': { lesson: null, kit: '', memo: '', prepared: false, absentTodos: [], prepTodos: [] },
-    '신도초': { lesson: null, kit: '', memo: '', prepared: false, absentTodos: [], prepTodos: [] },
-    '삼성초': { lesson: null, kit: '', memo: '', prepared: false, absentTodos: [], prepTodos: [] },
-    '연서초': { lesson: null, kit: '', memo: '', prepared: false, absentTodos: [], prepTodos: [] }
+    '증산초': { lesson: null, kit: '', memo: '', prepared: false, absentTodos: [], prepTodos: [], lastWeekAbsentTodos: [] },
+    '신도초': { lesson: null, kit: '', memo: '', prepared: false, absentTodos: [], prepTodos: [], lastWeekAbsentTodos: [] },
+    '삼성초': { lesson: null, kit: '', memo: '', prepared: false, absentTodos: [], prepTodos: [], lastWeekAbsentTodos: [] },
+    '연서초': { lesson: null, kit: '', memo: '', prepared: false, absentTodos: [], prepTodos: [], lastWeekAbsentTodos: [] }
   },
   // Academic schedules
   schedules: [],
@@ -285,6 +285,7 @@ function loadState() {
       for (const school of ['증산초', '신도초', '삼성초', '연서초']) {
         if (!state.schools[school].absentTodos) state.schools[school].absentTodos = [];
         if (!state.schools[school].prepTodos) state.schools[school].prepTodos = [];
+        if (!state.schools[school].lastWeekAbsentTodos) state.schools[school].lastWeekAbsentTodos = [];
       }
 
       // 데이터 정정: 잘못된 이벤트 및 구버전 이벤트 모두 제거 (type 불문, date+school로 완전 제거)
@@ -664,9 +665,35 @@ function renderDashboard() {
 
 // Helper to render segmented checklists on the dashboard cards
 function renderSchoolTodos(school) {
+  const lastAbsentList = document.getElementById(`last-absent-list-${school}`);
   const absentList = document.getElementById(`absent-list-${school}`);
   const prepList = document.getElementById(`prep-list-${school}`);
-  
+
+  // 지난주 결석생 렌더링
+  if (lastAbsentList) {
+    lastAbsentList.innerHTML = '';
+    const todos = state.schools[school].lastWeekAbsentTodos || [];
+    if (todos.length === 0) {
+      lastAbsentList.innerHTML = `<li style="font-size: 0.75rem; color: var(--text-muted); padding: 0.2rem 0.5rem; text-align: center;">지난주 결석생 없음</li>`;
+    } else {
+      todos.forEach(todo => {
+        const li = document.createElement('li');
+        li.className = 'todo-item';
+        li.innerHTML = `
+          <input type="checkbox" class="todo-checkbox-el last-absent-todo-chk" data-school="${school}" data-id="${todo.id}" ${todo.completed ? 'checked' : ''}>
+          <span class="todo-text ${todo.completed ? 'completed' : ''}">${todo.text}</span>
+          <button class="btn-todo-delete last-absent-todo-del" data-school="${school}" data-id="${todo.id}" title="삭제">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+          </button>
+        `;
+        lastAbsentList.appendChild(li);
+      });
+    }
+  }
+
   if (absentList) {
     absentList.innerHTML = '';
     const todos = state.schools[school].absentTodos || [];
@@ -679,6 +706,7 @@ function renderSchoolTodos(school) {
         li.innerHTML = `
           <input type="checkbox" class="todo-checkbox-el absent-todo-chk" data-school="${school}" data-id="${todo.id}" ${todo.completed ? 'checked' : ''}>
           <span class="todo-text ${todo.completed ? 'completed' : ''}">${todo.text}</span>
+          <button class="btn-move-to-last-week" data-school="${school}" data-id="${todo.id}" title="지난주로 이동" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.35);color:#f59e0b;border-radius:4px;padding:0.15rem 0.35rem;font-size:0.7rem;cursor:pointer;margin-left:2px;">→지난주</button>
           <button class="btn-todo-delete absent-todo-del" data-school="${school}" data-id="${todo.id}" title="삭제">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <polyline points="3 6 5 6 21 6"></polyline>
@@ -757,6 +785,8 @@ function setupDashboardEventListeners() {
       
       if (type === 'absent') {
         state.schools[school].absentTodos.push(newTodo);
+      } else if (type === 'lastAbsent') {
+        state.schools[school].lastWeekAbsentTodos.push(newTodo);
       } else {
         state.schools[school].prepTodos.push(newTodo);
       }
@@ -774,7 +804,7 @@ function setupDashboardEventListeners() {
       if (e.key === 'Enter') {
         const card = input.closest('.school-card');
         const school = card.getAttribute('data-school');
-        const type = input.id.startsWith('absent') ? 'absent' : 'prep';
+        const type = input.id.startsWith('last-absent') ? 'lastAbsent' : (input.id.startsWith('absent') ? 'absent' : 'prep');
         const addBtn = card.querySelector(`.btn-todo-add[data-type="${type}"]`);
         if (addBtn) addBtn.click();
       }
@@ -789,9 +819,12 @@ function setupDashboardEventListeners() {
       if (e.target.classList.contains('todo-checkbox-el')) {
         const school = e.target.getAttribute('data-school');
         const id = e.target.getAttribute('data-id');
+        const isLastAbsent = e.target.classList.contains('last-absent-todo-chk');
         const isAbsent = e.target.classList.contains('absent-todo-chk');
-        
-        const list = isAbsent ? state.schools[school].absentTodos : state.schools[school].prepTodos;
+
+        const list = isLastAbsent
+          ? state.schools[school].lastWeekAbsentTodos
+          : (isAbsent ? state.schools[school].absentTodos : state.schools[school].prepTodos);
         const todo = list.find(t => t.id === id);
         if (todo) {
           todo.completed = e.target.checked;
@@ -802,15 +835,34 @@ function setupDashboardEventListeners() {
       }
     });
 
-    // Delete buttons
+    // Delete buttons & 지난주로 이동 버튼
     schoolContainer.addEventListener('click', (e) => {
+      // 지난주로 이동 버튼
+      const moveBtn = e.target.closest('.btn-move-to-last-week');
+      if (moveBtn) {
+        const school = moveBtn.getAttribute('data-school');
+        const id = moveBtn.getAttribute('data-id');
+        const todo = state.schools[school].absentTodos.find(t => t.id === id);
+        if (todo) {
+          state.schools[school].lastWeekAbsentTodos.push({ ...todo, completed: false });
+          state.schools[school].absentTodos = state.schools[school].absentTodos.filter(t => t.id !== id);
+          saveState();
+          renderSchoolTodos(school);
+          generateWeeklyBriefing();
+        }
+        return;
+      }
+
       const delBtn = e.target.closest('.btn-todo-delete');
       if (delBtn) {
         const school = delBtn.getAttribute('data-school');
         const id = delBtn.getAttribute('data-id');
+        const isLastAbsent = delBtn.classList.contains('last-absent-todo-del');
         const isAbsent = delBtn.classList.contains('absent-todo-del');
-        
-        if (isAbsent) {
+
+        if (isLastAbsent) {
+          state.schools[school].lastWeekAbsentTodos = state.schools[school].lastWeekAbsentTodos.filter(t => t.id !== id);
+        } else if (isAbsent) {
           state.schools[school].absentTodos = state.schools[school].absentTodos.filter(t => t.id !== id);
         } else {
           state.schools[school].prepTodos = state.schools[school].prepTodos.filter(t => t.id !== id);
