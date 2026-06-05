@@ -1639,12 +1639,36 @@ function renderScheduler() {
   renderSchedulerSlots();
 }
 
+// 각 교구(session)를 어느 학교가 어느 월/주차에 사용했는지 계산
+function getKitUsageBySchool() {
+  const usage = {}; // { session: { school: ['2026-06 W1', ...] } }
+  const schools = ['증산초', '신도초', '삼성초', '연서초'];
+  schools.forEach(school => {
+    const plans = state.schoolMonthlyPlans[school] || {};
+    Object.entries(plans).forEach(([ym, weeks]) => {
+      const [y, m] = ym.split('-');
+      weeks.forEach((session, idx) => {
+        if (!session || session === 0) return;
+        if (!usage[session]) usage[session] = {};
+        if (!usage[session][school]) usage[session][school] = [];
+        usage[session][school].push(`${parseInt(m)}월 ${idx + 1}주차`);
+      });
+    });
+  });
+  return usage;
+}
+
 function renderMasterKitsList() {
   const container = document.getElementById('master-kits-list-container');
   const searchVal = document.getElementById('master-kit-search-input').value.toLowerCase();
-  
+
   container.innerHTML = '';
-  
+
+  const kitUsage = getKitUsageBySchool();
+  const schoolColors = { '증산초': '#2563eb', '신도초': '#059669', '삼성초': '#d97706', '연서초': '#db2777' };
+  const schoolShort = { '증산초': '증산', '신도초': '신도', '삼성초': '삼성', '연서초': '연서' };
+  const allSchools = ['증산초', '신도초', '삼성초', '연서초'];
+
   state.masterKits.forEach(kit => {
     if (searchVal && !kit.name.toLowerCase().includes(searchVal) && !kit.topic.toLowerCase().includes(searchVal) && !kit.content.toLowerCase().includes(searchVal)) {
       return;
@@ -1652,9 +1676,31 @@ function renderMasterKitsList() {
 
     const item = document.createElement('div');
     item.className = 'master-kit-item';
-    item.title = '더블 클릭하여 교구 세부 사항 편집';
 
     const standardMonthWeek = getStandardMonthAndWeekForSession(kit.session);
+    const sessionUsage = kitUsage[kit.session] || {};
+    const usedSchools = Object.keys(sessionUsage);
+    const allUsed = allSchools.every(s => usedSchools.includes(s));
+    const noneUsed = usedSchools.length === 0;
+
+    // 학교 사용 배지 HTML 생성
+    const badgesHtml = allSchools.map(school => {
+      const used = sessionUsage[school];
+      if (used) {
+        const detail = used.join(', ');
+        const color = schoolColors[school];
+        return `<span class="kit-school-badge kit-school-used" style="background:${color};border-color:${color}" title="${school}: ${detail}">${schoolShort[school]}</span>`;
+      } else {
+        return `<span class="kit-school-badge kit-school-unused" title="${school}: 미사용">${schoolShort[school]}</span>`;
+      }
+    }).join('');
+
+    // 전체 사용 완료 또는 미사용 표시
+    const statusHtml = allUsed
+      ? '<span class="kit-usage-status all-done">✓ 4교 완료</span>'
+      : noneUsed
+        ? '<span class="kit-usage-status not-used">미사용</span>'
+        : `<span class="kit-usage-status partial">${usedSchools.length}/4교</span>`;
 
     item.innerHTML = `
       <div class="kit-session-badge">${kit.session}</div>
@@ -1665,6 +1711,10 @@ function renderMasterKitsList() {
           <span class="kit-topic-badge">(${kit.topic})</span>
         </div>
         <div class="kit-content-desc">${kit.content}</div>
+        <div class="kit-school-usage">
+          ${badgesHtml}
+          ${statusHtml}
+        </div>
       </div>
       <div class="kit-edit-hint">더블클릭 편집</div>
     `;
